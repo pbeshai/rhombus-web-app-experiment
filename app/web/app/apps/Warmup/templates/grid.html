@@ -1,0 +1,26 @@
+<div class="participant-grid">
+	<div class="grid-inner">
+	<div class="grid-selecter"></div>
+	<div class="grid-col-labels">
+		<% for (var i = 0; i < columnLabels.length; i++) { %>
+			<div class="grid-col-label grid-label grid-col-label-<%= i %>"><%= columnLabels[i] %></div>
+		<% } %>
+	</div>
+	<% for (var r = 0; r < rows; r++) { %>
+	<div class="grid-row grid-row-<%= r %>">
+		<div class="grid-row-label grid-label"><%= rowLabels[r] %></div>
+		<% for (var c = 0; c < columns; c++) { %>
+			<% if (r*rows + c === participantLocation) { %>
+				<div class="participant grid-col-<%= c %> participant-location"></div>
+			<% } else { %>
+				<div class="participant grid-col-<%= c %>"></div>
+			<% } %>
+		<% } %>
+	</div>
+	<% } %>
+	</div>
+</div>
+
+<button class="btn select-mode">Select Mode</button>
+<button class="btn select-row">Select Row</button>
+<button class="btn select-column">Select Column</button>

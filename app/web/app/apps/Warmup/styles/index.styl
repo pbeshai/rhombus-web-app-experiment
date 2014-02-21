@@ -1,0 +1,87 @@
+select-color = #20B42C;
+
+.app-warmup {
+  .participant-grid {
+    text-align: center; /* center the grid */
+  }
+
+  .grid-inner {
+    position: relative;
+    display: inline-block;
+    margin: auto;
+  }
+  .grid-selecter {
+    border: 5px solid select-color;
+    position: absolute;
+    top: -5px;
+    bottom: 0;
+    left: -5px;
+    right: -5px;
+    z-index: 2;
+    opacity: 0;
+  }
+  .grid-row {
+    position: relative;
+  }
+
+  .grid-label {
+    font-weight: 300;
+    font-size: 2em;
+    -webkit-transition: .4s opacity;
+    opacity: 0;
+  }
+
+  .grid-label.selected {
+    opacity: .2;
+  }
+
+  .grid-row-label {
+    position: absolute;
+    line-height: 3.25em;
+    left: -40px;
+  }
+  .select-mode-row .grid-row-label {
+    opacity: 1
+
+  }
+
+  .grid-col-label {
+    width: 2.75em;
+    border: 1px solid transparent;
+    display: inline-block;
+    margin: 2px 2px 6px;
+    line-height: 1em;
+  }
+
+  .select-mode-column .grid-col-label {
+    opacity: 1;
+  }
+
+  .participant.participant-location {
+    background: #31B1D1;
+  }
+
+  .select-mode {
+
+    .participant {
+      background: #333;
+      -webkit-transition: .2s background;
+    }
+
+    .grid-selecter {
+      opacity: .95;
+      -webkit-transition: .4s opacity;
+    }
+  }
+
+  .selecting .grid-row .participant{
+    opacity: 0.2;
+    -webkit-transition: .4s opacity;
+  }
+
+  .selecting .grid-row .participant.selected {
+    opacity: 1;
+    -webkit-transition: 0;
+  }
+
+}
