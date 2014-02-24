@@ -19,7 +19,7 @@ function (App, StateApp, CommonStateApps, Warmup) {
 	// description for use in router
 	WarmupApp.app = {
 		instantiate: function (attrs) {
-			return new WarmupApp(attrs);
+			return new WarmupApp(attrs, { autoAddNew: true });
 		},
 		AppControlsView: undefined,
 		title: "Experiment Warmup"

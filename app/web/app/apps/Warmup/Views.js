@@ -14,10 +14,26 @@ function (App, Common, Warmup) {
 
 	WarmupViews.Play.Layout = App.registerView("warmup::play", Backbone.View.extend({
 		template: "app/apps/Warmup/templates/grid",
-		events: {
-			"click .select-mode" : 'selectMode',
-			"click .select-row" : "evtRow",
-			"click .select-column" : "evtCol"
+
+		isSelectMode: function () {
+			var mode = this.options.mode;
+			return mode === "selectRow" || mode === "selectCol" || mode === "selected";
+		},
+
+		afterRender: function () {
+			// initialize in the correct state
+			var mode = this.options.mode, modeMeta = this.options.modeMeta;
+			if (this.isSelectMode()) {
+				this.selectMode();
+
+				if(mode === "selectCol" || mode === "selected") {
+					this.selectRow(modeMeta.selectedRow);
+				}
+
+				if (mode === "selected") {
+					this.selectColumn(modeMeta.selectedCol);
+				}
+			}
 		},
 
 		selectMode: function () {
@@ -26,18 +42,14 @@ function (App, Common, Warmup) {
 			this.$(".participant-grid").addClass('select-mode').addClass('select-mode-row');
 		},
 
-		evtRow: function () {
-			this.selectRow(3);
-		},
-
-		evtCol: function () {
-			this.selectColumn(2);
-		},
-
 		update: function (data) {
 			console.log("my custom update", data);
-			if (data.event === "start-select") {
+			if (data.mode === "selectRow") {
 				this.selectMode();
+			} else if (data.mode === "selectCol") {
+				this.selectRow(data.modeMeta.selectedRow);
+			} else if (data.mode === "selected") {
+				this.selectColumn(data.modeMeta.selectedCol);
 			}
 		},
 
