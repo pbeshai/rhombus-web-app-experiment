@@ -15,7 +15,7 @@ select-color = #20B42C;
   .grid-cell {
     width: 5.5em;
     height: 5.5em;
-    margin: 2px;
+    margin: 4px;
     display: inline-block;
     position: relative;
   }
@@ -33,14 +33,15 @@ select-color = #20B42C;
     border: 5px solid select-color;
     position: absolute;
     top: -5px;
-    bottom: -2px;
-    left: 0;
-    right: 0;
+    bottom: -5px;
+    left: -2px;
+    right: -2px;
     z-index: 2;
     opacity: 0;
   }
   .grid-row {
     position: relative;
+    line-height: 0;
   }
 
   .grid-label {

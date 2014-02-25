@@ -7,19 +7,18 @@
 			<div class="grid-col-label grid-label grid-col-label-<%= i %>"><%= columnLabels[i] %></div>
 		<% } %>
 	</div>
-	<% for (var r = 0; r < rows; r++) { %>
-	<div class="grid-row grid-row-<%= r %>">
-		<div class="grid-row-label grid-label"><%= rowLabels[r] %></div>
-		<% for (var c = 0; c < columns; c++) { %>
-			<% if (r*rows + c === participantLocation) { %>
-				<div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %> participant-location"></div>
-			<% } else { %>
-				<div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %>"></div>
-			<% } %>
-		<% } %>
-	</div>
-	<% } %>
-	</div>
+	<% for (var r = 0; r < rows; r++) {
+	 %><div class="grid-row grid-row-<%= r %>"><div class="grid-row-label grid-label"><%= rowLabels[r] %></div><%
+		  for (var c = 0; c < columns; c++) {
+		  	if (r*rows + c === participantLocation) {
+				%><div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %> participant-location"></div><%
+			  } else {
+				%><div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %>"></div><%
+			  }
+			}
+	%></div><%
+	}
+	%></div>
 </div>
 <% } else { %>
 <h1 class="big-message">Waiting for participant...</h1>

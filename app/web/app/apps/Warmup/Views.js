@@ -102,10 +102,10 @@ function (App, Common, Warmup) {
 			// do not dim these participants
 			$selectedRow.children().addClass("selected");
 
-			var selecterTop = $selectedRow.position().top - 5;
+			var selecterTop = $selectedRow.position().top - 4;
 
 			var cellHeight = this.$(".grid-cell").height();
-			var selecterHeight = cellHeight + 4;
+			var selecterHeight = cellHeight + 6;
 
 			$selecter.animate({top: selecterTop, height: selecterHeight });
 
@@ -125,9 +125,9 @@ function (App, Common, Warmup) {
 			this.$(".grid-col-label-" + col).addClass("selected");
 
 			var cellWidth = this.$(".grid-cell").width();
-			var selecterWidth = cellWidth + 4;
+			var selecterWidth = cellWidth + 6;
 
-			var selecterLeft = $selectedCol.position().left - 5;
+			var selecterLeft = $selectedCol.position().left - 4;
 			var $el = this.$el;
 			$selecter.animate({left: selecterLeft, width: selecterWidth }, function () {
 				// fade out 1s later
