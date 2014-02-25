@@ -10,8 +10,32 @@ function (App, Common, Warmup) {
 
 	WarmupViews.Play = {};
 
-	WarmupViews.Play.Layout = App.registerView("warmup::play", Backbone.View.extend({
+	WarmupViews.Play.Participant = Common.Views.ParticipantDisplay.extend({
+		actionAnimations: {
+			"A": "pulse",
+			"B": "bounce",
+			"C": "shake",
+			"D": "swing",
+			// "E": "wobble"
+		},
+
+		mainText: function (model) { },
+		idText: function (model) { },
+		image: function (model) { },
+
+		cssClass: function (model) {
+			var css = "br-corner-message animated ";
+			if (model.get("choice")) {
+				return css + this.actionAnimations[model.get("choice")];
+			}
+			return css;
+		}
+	});
+
+	WarmupViews.Play.Layout = App.registerView("warmup::play", App.BaseView.extend({
 		template: "app/apps/Warmup/templates/grid",
+		numRows: 5,
+		numCols: 5,
 
 		isSelectMode: function () {
 			var mode = this.options.mode;
@@ -21,6 +45,15 @@ function (App, Common, Warmup) {
 		beforeRender: function () {
 			console.log("@BEFORE", this.$el);
 			this.$el.css('opacity', 0);
+
+			if (!this.participants || this.participants.length === 0) return;
+
+			this.insertView(".participant-location", new WarmupViews.Play.Participant({ model: this.participants.at(0) }));
+			for (var i = 0; i < this.numRows * this.numCols; i++) {
+				if (i !== this.options.userLocation) {
+					this.insertView(".grid-cell-" + i, new WarmupViews.Play.Participant({ model: new Backbone.Model() }));
+				}
+			}
 		},
 
 		afterRender: function () {
@@ -71,8 +104,8 @@ function (App, Common, Warmup) {
 
 			var selecterTop = $selectedRow.position().top - 5;
 
-			var cellHeight = this.$(".participant").height();
-			var selecterHeight = cellHeight + 6;
+			var cellHeight = this.$(".grid-cell").height();
+			var selecterHeight = cellHeight + 4;
 
 			$selecter.animate({top: selecterTop, height: selecterHeight });
 
@@ -87,12 +120,12 @@ function (App, Common, Warmup) {
 			var $selectedCell = this.$(".selected.grid-col-" + col);
 
 			// dim siblings
-			$selectedCell.siblings(".participant").removeClass('selected');
+			$selectedCell.siblings(".grid-cell").removeClass('selected');
 			// mark the label as selected
 			this.$(".grid-col-label-" + col).addClass("selected");
 
-			var cellWidth = this.$(".participant").width();
-			var selecterWidth = cellWidth + 6;
+			var cellWidth = this.$(".grid-cell").width();
+			var selecterWidth = cellWidth + 4;
 
 			var selecterLeft = $selectedCol.position().left - 5;
 			var $el = this.$el;
@@ -110,8 +143,8 @@ function (App, Common, Warmup) {
 		serialize: function () {
 			return {
 				participantReady: this.options.participants.length > 0,
-				rows: 5,
-				columns: 5,
+				rows: this.numRows,
+				columns: this.numCols,
 				participantLocation: this.options.userLocation,
 				rowLabels: ["A", "B", "C", "D", "E"],
 				columnLabels: ["A", "B", "C", "D", "E"]

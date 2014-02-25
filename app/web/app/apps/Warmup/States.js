@@ -40,6 +40,7 @@ function (App, Common, StateApp, Warmup) {
 			// only work with a single participant.
 			this.participants = this.input.participants; // need collection for ease of use with framework
 			this.setParticipant(this.participants.at(0));
+
 		},
 
 		setParticipant: function (participant) {
@@ -47,6 +48,7 @@ function (App, Common, StateApp, Warmup) {
 			// listen for choices
 			this.stopListening();
 			if (participant) {
+				participant.reset();
 				this.listenTo(this.input.participants, "update:choice", function (eventParticipant, choice) {
 					if (participant === eventParticipant) {
 						this.handleInput(choice);
@@ -62,6 +64,7 @@ function (App, Common, StateApp, Warmup) {
 				if (choice === "E") {
 					this.model.set({ mode: this.modes.selectRow, modeMeta: null });
 					this.model.save();
+					this.participant.set("choice", null);
 				}
 			// select row = A-E choose row
 			} else if (mode === this.modes.selectRow) {

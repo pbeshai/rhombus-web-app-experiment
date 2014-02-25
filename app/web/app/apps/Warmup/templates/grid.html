@@ -12,9 +12,9 @@
 		<div class="grid-row-label grid-label"><%= rowLabels[r] %></div>
 		<% for (var c = 0; c < columns; c++) { %>
 			<% if (r*rows + c === participantLocation) { %>
-				<div class="participant grid-col-<%= c %> participant-location"></div>
+				<div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %> participant-location"></div>
 			<% } else { %>
-				<div class="participant grid-col-<%= c %>"></div>
+				<div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %>"></div>
 			<% } %>
 		<% } %>
 	</div>

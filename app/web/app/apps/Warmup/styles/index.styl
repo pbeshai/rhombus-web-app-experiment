@@ -12,6 +12,18 @@ select-color = #20B42C;
     text-align: center; /* center the grid */
   }
 
+  .grid-cell {
+    width: 5.5em;
+    height: 5.5em;
+    margin: 2px;
+    display: inline-block;
+    position: relative;
+  }
+  .grid-cell .participant {
+    margin: 0;
+    border: 0;
+  }
+
   .grid-inner {
     position: relative;
     display: inline-block;
@@ -21,9 +33,9 @@ select-color = #20B42C;
     border: 5px solid select-color;
     position: absolute;
     top: -5px;
-    bottom: 0;
-    left: -5px;
-    right: -5px;
+    bottom: -2px;
+    left: 0;
+    right: 0;
     z-index: 2;
     opacity: 0;
   }
@@ -64,15 +76,24 @@ select-color = #20B42C;
     opacity: 1;
   }
 
-  .participant.participant-location {
+  .participant-location .participant{
     background: #31B1D1;
   }
 
   .select-mode {
 
-    .participant {
+    .grid-cell {
       background: #333;
-      -webkit-transition: .2s background;
+      // -webkit-transition: .2s background;
+    }
+
+    /* prevents flash of location when refreshing the page in select mode */
+    .participant-location .participant{
+      background: inherit;
+    }
+    .grid-cell .participant {
+      opacity: 0;
+      -webkit-transition: .2s opacity;
     }
 
     .grid-selecter {
@@ -81,12 +102,12 @@ select-color = #20B42C;
     }
   }
 
-  .selecting .grid-row .participant{
+  .selecting .grid-row .grid-cell{
     opacity: 0.2;
     -webkit-transition: .4s opacity;
   }
 
-  .selecting .grid-row .participant.selected {
+  .selecting .grid-row .grid-cell.selected {
     opacity: 1;
     -webkit-transition: 0;
   }
