@@ -1,3 +1,4 @@
+<% if (participantReady) { %>
 <div class="participant-grid">
 	<div class="grid-inner">
 	<div class="grid-selecter"></div>
@@ -20,3 +21,6 @@
 	<% } %>
 	</div>
 </div>
+<% } else { %>
+<h1 class="big-message">Waiting for participant...</h1>
+<% } %>

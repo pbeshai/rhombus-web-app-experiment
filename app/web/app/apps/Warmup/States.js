@@ -81,6 +81,10 @@ function (App, Common, StateApp, Warmup) {
 					modeMeta: modeMeta
 				});
 				this.model.save();
+
+				// the full location has been entered now, so transition to next state after some delay
+				setTimeout(function () { this.stateApp.next(); }.bind(this), 2000);
+
 			}
 		},
 

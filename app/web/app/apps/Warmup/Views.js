@@ -18,10 +18,16 @@ function (App, Common, Warmup) {
 			return mode === "selectRow" || mode === "selectCol" || mode === "selected";
 		},
 
+		beforeRender: function () {
+			console.log("@BEFORE", this.$el);
+			this.$el.css('opacity', 0);
+		},
+
 		afterRender: function () {
 			// initialize in the correct state
 			var mode = this.options.mode, modeMeta = this.options.modeMeta;
 			if (this.isSelectMode()) {
+				this.$el.css('opacity', 1);
 				this.selectMode();
 
 				if(mode === "selectCol" || mode === "selected") {
@@ -31,6 +37,9 @@ function (App, Common, Warmup) {
 				if (mode === "selected") {
 					this.selectColumn(modeMeta.selectedCol);
 				}
+			} else { // initial load -- fade in
+				this.$el.animate({opacity: 1}, 500);
+
 			}
 		},
 
@@ -86,14 +95,21 @@ function (App, Common, Warmup) {
 			var selecterWidth = cellWidth + 6;
 
 			var selecterLeft = $selectedCol.position().left - 5;
-
-			$selecter.animate({left: selecterLeft, width: selecterWidth });
+			var $el = this.$el;
+			$selecter.animate({left: selecterLeft, width: selecterWidth }, function () {
+				// fade out 1s later
+				setTimeout(function () {
+					$el.animate({opacity: 0});
+				}, 1000);
+			});
 
 			this.$(".participant-grid").removeClass('select-mode-column');
 		},
 
+
 		serialize: function () {
 			return {
+				participantReady: this.options.participants.length > 0,
 				rows: 5,
 				columns: 5,
 				participantLocation: this.options.userLocation,
