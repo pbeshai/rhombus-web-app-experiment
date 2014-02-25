@@ -13,6 +13,13 @@ function (App, Common, StateApp, Warmup) {
 	// To be used in StateApps
 	WarmupStates = {};
 
+	var WarmupModel = Common.Models.ViewModel.extend({
+		isCorrect: function () {
+			var location = this.get("userLocation");
+			var modeMeta = this.get("modeMeta");
+			return !!modeMeta && (location === modeMeta.selectedRow * 5 + modeMeta.selectedCol);
+		}
+	});
 
 	WarmupStates.Play = StateApp.ViewState.extend({
 		name: "play",
@@ -21,23 +28,21 @@ function (App, Common, StateApp, Warmup) {
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
-			this.model = new Common.Models.ViewModel({
+			this.model = new WarmupModel({
 				mode: this.modes.discover,
-				modeMeta: null
+				modeMeta: null,
+				userLocation: Math.floor(Math.random() * 25)
 			});
 		},
 
 		// this.input is a participant collection.
 		beforeRender: function () {
-			window.p = this.input.participants;
 			// only work with a single participant.
 			this.participants = this.input.participants; // need collection for ease of use with framework
-			console.log("BEFORE RENDER");
 			this.setParticipant(this.participants.at(0));
 		},
 
 		setParticipant: function (participant) {
-			console.log("SETTING PARTICIPANT");
 			this.participant = participant;
 			// listen for choices
 			this.stopListening();
@@ -80,7 +85,6 @@ function (App, Common, StateApp, Warmup) {
 		},
 
 		viewOptions: function () {
-			console.log("@@ calling viewOptions");
 			var viewOptions = {
 				participants: this.participants,
 				config: this.config,
@@ -97,7 +101,10 @@ function (App, Common, StateApp, Warmup) {
 
 		// outputs a participant participants
 		onExit: function () {
-			return new StateApp.StateMessage({ participants: this.participants });
+			return new StateApp.StateMessage({
+				participants: this.participants,
+				correct: this.model.isCorrect()
+			});
 		},
 
 		addNewParticipants: function (render) {
@@ -112,6 +119,38 @@ function (App, Common, StateApp, Warmup) {
 				this.rerender();
 			}
 		},
+	});
+
+	WarmupStates.RepeatedPlay = StateApp.RepeatState.extend({
+		name: "repeat",
+		State: WarmupStates.Play,
+		numRepeats: 5,
+		streakRequired: 4,
+
+		initialize: function () {
+			StateApp.RepeatState.prototype.initialize.apply(this, arguments);
+			this.correctStreak = 0;
+		},
+
+		stateOutput: function (output) {
+			console.log("got state output", output);
+			var currentIndex = this.currentState.options.stateIndex;
+			// if we are in the last n where we need to keep track of the streak
+			if (currentIndex >= this.numRepeats - this.streakRequired) {
+				if (!output.correct) { // output incorrect so decrement streak and add in new states
+					this.correctStreak = 0;
+					this.setRepeats(1 + currentIndex + this.streakRequired);
+				} else { // output correct so increment streak
+					this.correctStreak++;
+				}
+			}
+			return output.correct;
+		}
+	});
+
+	WarmupStates.Conclusion = StateApp.ViewState.extend({
+		name: "conclusion",
+		view: "warmup::conclusion"
 	});
 
 	return WarmupStates;

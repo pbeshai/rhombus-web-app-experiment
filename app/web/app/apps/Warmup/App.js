@@ -12,7 +12,7 @@ function (App, StateApp, CommonStateApps, Warmup) {
 		id: "warmup",
 		version: "1.0",
 		config: Warmup.config(),
-		States: [ Warmup.States.Play ],
+		States: [ Warmup.States.RepeatedPlay, Warmup.States.Conclusion ],
 		prepend: { attendance: false }
 	});
 

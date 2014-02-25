@@ -10,8 +10,6 @@ function (App, Common, Warmup) {
 
 	WarmupViews.Play = {};
 
-	WarmupViews.Play.Participant = Common.Views.ParticipantHiddenPlay;
-
 	WarmupViews.Play.Layout = App.registerView("warmup::play", Backbone.View.extend({
 		template: "app/apps/Warmup/templates/grid",
 
@@ -84,11 +82,10 @@ function (App, Common, Warmup) {
 			// mark the label as selected
 			this.$(".grid-col-label-" + col).addClass("selected");
 
-
-			var selecterLeft = $selectedCol.position().left - 5;
-
 			var cellWidth = this.$(".participant").width();
 			var selecterWidth = cellWidth + 6;
+
+			var selecterLeft = $selectedCol.position().left - 5;
 
 			$selecter.animate({left: selecterLeft, width: selecterWidth });
 
@@ -99,11 +96,16 @@ function (App, Common, Warmup) {
 			return {
 				rows: 5,
 				columns: 5,
-				participantLocation: 17,
+				participantLocation: this.options.userLocation,
 				rowLabels: ["A", "B", "C", "D", "E"],
 				columnLabels: ["A", "B", "C", "D", "E"]
 			};
 		}
+	}));
+
+
+	WarmupViews.Conclusion = App.registerView("warmup::conclusion", Backbone.View.extend({
+		template: "app/apps/Warmup/templates/conclusion"
 	}));
 
 	return WarmupViews;
