@@ -15,24 +15,70 @@ function (App, Common, StateApp, Warmup) {
 
 	var WarmupModel = Common.Models.ViewModel.extend({
 		isCorrect: function () {
-			var location = this.get("userLocation");
 			var modeMeta = this.get("modeMeta");
-			return !!modeMeta && (location === modeMeta.selectedRow * 5 + modeMeta.selectedCol);
+			return modeMeta &&
+				this.get('userRow') === modeMeta.selectedRow &&
+				this.get('userCol') === modeMeta.selectedCol;
+		},
+
+		logDiscoverChoice: function (choice) {
+			var choices = this.get("discoverChoices");
+			var now = new Date().getTime();
+			var start = this.get("timing").start;
+
+			choices.push([choice, now - start]);
+
+			console.log("new choices", choices);
 		}
 	});
 
 	WarmupStates.Play = StateApp.ViewState.extend({
 		name: "play",
 		view: "warmup::play",
-		modes: { discover: 'discover', selectRow: 'selectRow', selectCol: 'selectCol', selected: 'selected' },
+		modes: { waiting: 'waiting', discover: 'discover', selectRow: 'selectRow', selectCol: 'selectCol', selected: 'selected' },
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
 			this.model = new WarmupModel({
-				mode: this.modes.discover,
+				mode: this.modes.waiting,
 				modeMeta: null,
-				userLocation: Math.floor(Math.random() * 25)
+				userRow: Math.floor(Math.random() * 5),
+				userCol: Math.floor(Math.random() * 5),
+				timing: {},
+				discoverChoices: []
 			});
+
+			this.listenTo(this.model, "change", function (model) {
+				console.log("model changed", model.changed);
+				if (model.hasChanged('mode')) {
+					this.modeChanged();
+				}
+			}, this);
+		},
+
+		modeChanged: function () {
+			var model = this.model;
+			var timing = model.get("timing");
+			var mode = this.model.get("mode");
+			var now = new Date().getTime();
+
+			switch(mode) {
+				case this.modes.discover:
+					timing.start = now;
+					break;
+				case this.modes.selectRow:
+					timing.discover = now - timing.start;
+					break;
+				case this.modes.selectCol:
+					timing.selectRow = now - timing.start - timing.discover;
+					break;
+				case this.modes.selected:
+					timing.end = now;
+					timing.selectCol = now - timing.start - timing.discover - timing.selectRow;
+					timing.total = now - timing.start;
+					break;
+			}
+			console.log("NEW TIMING", timing);
 		},
 
 		// this.input is a participant collection.
@@ -46,7 +92,7 @@ function (App, Common, StateApp, Warmup) {
 		setParticipant: function (participant) {
 			this.participant = participant;
 			// listen for choices
-			this.stopListening();
+			this.stopListening(this.input.participants);
 			if (participant) {
 				participant.reset();
 				this.listenTo(this.input.participants, "update:choice", function (eventParticipant, choice) {
@@ -54,17 +100,23 @@ function (App, Common, StateApp, Warmup) {
 						this.handleInput(choice);
 					}
 				});
+
+				// no longer waiting
+				this.model.set({ mode: this.modes.discover, modeMeta: null });
 			}
 		},
 
 		handleInput: function (choice) {
 			var mode = this.model.get("mode");
+			console.log("mode is ", mode);
 			// discover mode = A-D animate, E moves to next mode
 			if (mode === this.modes.discover) {
 				if (choice === "E") {
 					this.model.set({ mode: this.modes.selectRow, modeMeta: null });
 					this.model.save();
 					this.participant.set("choice", null);
+				} else {
+					this.model.logDiscoverChoice(choice);
 				}
 			// select row = A-E choose row
 			} else if (mode === this.modes.selectRow) {
@@ -110,7 +162,13 @@ function (App, Common, StateApp, Warmup) {
 		onExit: function () {
 			return new StateApp.StateMessage({
 				participants: this.participants,
-				correct: this.model.isCorrect()
+				correct: this.model.isCorrect(),
+				userRow: this.model.get("userRow"),
+				userCol: this.model.get("userCol"),
+				selectedCol: this.model.get("modeMeta").selectedCol,
+				selectedRow: this.model.get("modeMeta").selectedRow,
+				timing: this.model.get("timing"),
+				discoverChoices: this.model.get("discoverChoices")
 			});
 		},
 
@@ -151,7 +209,14 @@ function (App, Common, StateApp, Warmup) {
 					this.correctStreak++;
 				}
 			}
-			return output.correct;
+
+			this.log(this.logTrial(output), { trial: currentIndex });
+
+			return output;
+		},
+
+		logTrial: function (trialOutput) {
+			return _.omit(trialOutput, ['participants', 'clone']);
 		}
 	});
 

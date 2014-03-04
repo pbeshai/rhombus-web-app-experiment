@@ -49,8 +49,9 @@ function (App, Common, Warmup) {
 			if (!this.participants || this.participants.length === 0) return;
 
 			this.insertView(".participant-location", new WarmupViews.Play.Participant({ model: this.participants.at(0) }));
+			var userLocation = this.options.userRow * this.numRows + this.options.userCol;
 			for (var i = 0; i < this.numRows * this.numCols; i++) {
-				if (i !== this.options.userLocation) {
+				if (i !== userLocation) {
 					this.insertView(".grid-cell-" + i, new WarmupViews.Play.Participant({ model: new Backbone.Model() }));
 				}
 			}
@@ -145,7 +146,8 @@ function (App, Common, Warmup) {
 				participantReady: this.options.participants.length > 0,
 				rows: this.numRows,
 				columns: this.numCols,
-				participantLocation: this.options.userLocation,
+				participantRow: this.options.userRow,
+				participantCol: this.options.userCol,
 				rowLabels: ["A", "B", "C", "D", "E"],
 				columnLabels: ["A", "B", "C", "D", "E"]
 			};

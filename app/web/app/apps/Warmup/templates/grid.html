@@ -10,7 +10,7 @@
 	<% for (var r = 0; r < rows; r++) {
 	 %><div class="grid-row grid-row-<%= r %>"><div class="grid-row-label grid-label"><%= rowLabels[r] %></div><%
 		  for (var c = 0; c < columns; c++) {
-		  	if (r*rows + c === participantLocation) {
+		  	if (r === participantRow && c === participantCol) {
 				%><div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %> participant-location"></div><%
 			  } else {
 				%><div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %>"></div><%

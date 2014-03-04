@@ -8,6 +8,7 @@ var fs = require('fs'),
 
 function initialize(site) {
 	site.post("/api/apps/q/log", questionResults);
+	site.post("/api/apps/warmup/log", warmupResults);
 }
 
 
@@ -17,6 +18,17 @@ function z(str) { // add leading zero
 
 function filenameFormat(date) {
 	return date.getFullYear()+z(date.getMonth()+1)+z(date.getDate())+"_"+z(date.getHours())+z(date.getMinutes())+z(date.getSeconds());
+}
+
+function warmupResults(req, res) {
+	var flags = req.body.flags;
+
+	if (flags && flags.trial !== undefined && flags.trial !== false) {
+		console.log("Trial ", flags.trial);
+	} else {
+		console.log("Not trial");
+	}
+	console.log(req.body);
 }
 
 function questionResults(req, res) {
