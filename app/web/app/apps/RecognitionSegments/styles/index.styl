@@ -1,0 +1,83 @@
+.app-RecognitionSegments {
+  .participant-grid {
+    zoom: 1.4;
+    text-align: center; /* center the grid */
+  }
+  .grid-cell {
+    width: 5.5em;
+    height: 5.5em;
+    margin: 4px;
+    display: inline-block;
+    position: relative;
+  }
+
+  .grid-inner {
+    position: relative;
+    display: inline-block;
+    margin: auto;
+  }
+
+  .grid-row {
+    position: relative;
+    line-height: 0;
+  }
+  .participant .id-text {
+    line-height: 1;
+  }
+}
+
+
+segment-length-wide=2.1em; // for wide segments
+segment-length-tall=1.8em; // for tall segments
+segment-thickness=.5em;
+segment-color=#fff;
+.segment-display {
+  position: relative;
+  width: segment-length-wide + segment-thickness;
+  height: 2*segment-length-tall + segment-thickness;
+  margin: auto;
+}
+
+.participant .message-text .segment-display {
+  font-size: 0.4em;
+}
+
+
+.segment {
+  background-color: segment-color;
+  position: absolute;
+  border-radius: segment-thickness;
+  border-right: 2px solid #000;
+  border-bottom: 2px solid #000;
+}
+
+.segment-wide {
+  width: segment-length-wide;
+  margin-left: 0.5*segment-thickness;
+  height: segment-thickness;
+}
+
+.segment-tall {
+  height: segment-length-tall;
+  width: segment-thickness;
+  margin-top: 0.5*segment-thickness;
+}
+
+.segment-lowerLeft {
+  top: segment-length-tall;
+}
+
+.segment-lowerRight {
+  top: segment-length-tall
+  left: segment-length-wide;
+}
+
+.segment-upperRight {
+  left: segment-length-wide;
+}
+.segment-middle {
+  top: segment-length-tall;
+}
+.segment-bottom {
+  top: 2*segment-length-tall;
+}

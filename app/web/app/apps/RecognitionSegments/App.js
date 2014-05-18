@@ -3,16 +3,16 @@ define([
 	"framework/modules/StateApp/Module",
 	"framework/modules/common/CommonStateApps",
 
-	"apps/Warmup/Module"
+	"apps/RecognitionSegments/Module"
 ],
 
-function (App, StateApp, CommonStateApps, Warmup) {
+function (App, StateApp, CommonStateApps, RecognitionSegments) {
 
 	var WarmupApp = CommonStateApps.BasicApp.extend({
-		id: "warmup",
+		id: "RecognitionSegments",
 		version: "1.0",
-		config: Warmup.config(),
-		States: [ Warmup.States.RepeatedPlay, Warmup.States.Conclusion ],
+		config: RecognitionSegments.config(),
+		States: [ RecognitionSegments.States.RepeatedPlay, RecognitionSegments.States.Conclusion ],
 		prepend: { attendance: false }
 	});
 
@@ -22,7 +22,7 @@ function (App, StateApp, CommonStateApps, Warmup) {
 			return new WarmupApp(attrs, { autoAddNew: true });
 		},
 		AppControlsView: undefined,
-		title: "Selection Experiment Warmup"
+		title: "Recognition (Segmented Display)"
 	};
 
 	return WarmupApp;
