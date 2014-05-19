@@ -32,12 +32,17 @@ function (App, Common, StateApp, RecognitionSegments) {
 		}
 	});
 
+	function randomChoice() {
+		return "ABCDE".charAt(Math.floor(Math.random() * 5));
+	}
+
 	RecognitionSegmentsStates.Play = StateApp.ViewState.extend({
 		name: "play",
 		view: "RecognitionSegments::play",
-		modes: { waiting: 'waiting', recognizeYours: 'recognizeYours', recognizeDistractor: 'recognizeDistractor' },
+		modes: { waiting: 'waiting', initialDelay: 'initialDelay', revealChoices: 'revealChoices', recognizeYours: 'recognizeYours', yourFeedback: 'yourFeedback',  recognizeDistractor: 'recognizeDistractor', distractorDelay: 'distractorDelay' },
 		aliasList: ["leo", "martha", "jordan", "zooey", "angie", "perry", "stiller", "pink", "halle", "lopez", "marilyn", "spears", "aniston", "spock", "freeman", "pitt", "will", "lucy", "rihanna", "cera", "swift", "depp", "adele", "gosling", "jackson", "keanu", "potter", "cruise", "arnie", "diaz", "murray", "cruz", "bee", "leia", "hova", "scarjo", "audrey", "elvis", "deniro", "rdj", "holmes", "timber", "gates", "yeezy", "jobs", "fey", "owen", "whoopi", "portman", "julia", "alba", "liz", "maddy", "vaughn", "oprah", "gaga", "ellen", "marley", "ford", "bruce", "carrey", "bond", "samuel", "mila"],
-
+		initialDelayTime: 500,
+		revealTime: 200,
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
@@ -47,7 +52,9 @@ function (App, Common, StateApp, RecognitionSegments) {
 				userRow: 2, // middle
 				userCol: 2,
 				timing: {},
-				discoverChoices: []
+				discoverChoices: [],
+				yourChoice: randomChoice(),
+				distractorChoice: randomChoice()
 			});
 
 			this.aliases = _.shuffle(this.aliasList); // provide the aliases for the extra grid places
@@ -82,7 +89,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 					timing.total = now - timing.start;
 					break;
 			}
-			console.log("NEW TIMING", timing);
+			// console.log("NEW TIMING", timing);
 		},
 
 		// this.input is a participant collection.
@@ -90,7 +97,6 @@ function (App, Common, StateApp, RecognitionSegments) {
 			// only work with a single participant.
 			this.participants = this.input.participants; // need collection for ease of use with framework
 			this.setParticipant(this.participants.at(0));
-
 		},
 
 		setParticipant: function (participant) {
@@ -106,16 +112,34 @@ function (App, Common, StateApp, RecognitionSegments) {
 				});
 
 				// no longer waiting
-				this.model.set({ mode: this.modes.recognizeYours, modeMeta: null });
+				this.startTrial();
+
 			}
+		},
+
+		startTrial: function () {
+			window.p = this.participant;
+			this.model.set({ mode: this.modes.initialDelay, modeMeta: null });
+			setTimeout(this.doRevealChoices.bind(this), this.initialDelayTime);
+		},
+
+		doRevealChoices: function () {
+			this.model.set({ mode: this.modes.revealChoices, modeMeta: null });
+			this.participant.set("choice", this.model.get("yourChoice"));
+			setTimeout(function () {
+				this.model.set({ mode: this.modes.recognizeYours, modeMeta: null });
+				this.participant.set("choice", null);
+			}.bind(this), this.revealTime);
 		},
 
 		handleInput: function (choice) {
 			var mode = this.model.get("mode");
-			console.log("mode is ", mode);
+			console.log("mode is", mode);
 			// discover mode = A-D animate, E moves to next mode
-			if (mode === this.modes.recognizeYours) {
-				this.model.set({ mode: this.modes.recognizeDistractor, modeMeta: null });
+			if (mode === this.modes.initialDelay) {
+				// do nothing (perhaps log this? not sure)
+			} else if (mode === this.modes.recognizeYours) {
+				this.model.set({ mode: this.modes.yourFeedback, modeMeta: choice === this.yourChoice });
 				this.model.save();
 				this.participant.set("choice", null);
 

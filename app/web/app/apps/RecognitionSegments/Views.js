@@ -13,7 +13,7 @@ function (App, Common, RecognitionSegments) {
 	RecognitionSegmentsViews.Play.Participant = Common.Views.ParticipantDisplay.extend({
 		mainText: function (model) { },
 
-		cssClass: function (model) { },
+		cssClass: function (model) { return "br-corner-message"; },
 
 		beforeRender: function () {
 			Common.Views.ParticipantDisplay.prototype.beforeRender.apply(this, arguments);
