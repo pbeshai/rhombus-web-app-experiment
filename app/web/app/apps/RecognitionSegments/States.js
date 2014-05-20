@@ -15,10 +15,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 	var RecognitionSegmentsModel = Common.Models.ViewModel.extend({
 		isCorrect: function () {
-			var modeMeta = this.get("modeMeta");
-			return modeMeta &&
-				this.get('userRow') === modeMeta.selectedRow &&
-				this.get('userCol') === modeMeta.selectedCol;
+			return true;
 		},
 
 		logDiscoverChoice: function (choice) {
@@ -39,18 +36,27 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.Play = StateApp.ViewState.extend({
 		name: "play",
 		view: "RecognitionSegments::play",
-		modes: { waiting: 'waiting', initialDelay: 'initialDelay', revealChoices: 'revealChoices', recognizeYours: 'recognizeYours', yourFeedback: 'yourFeedback',  recognizeDistractor: 'recognizeDistractor', distractorDelay: 'distractorDelay' },
-		aliasList: ["leo", "martha", "jordan", "zooey", "angie", "perry", "stiller", "pink", "halle", "lopez", "marilyn", "spears", "aniston", "spock", "freeman", "pitt", "will", "lucy", "rihanna", "cera", "swift", "depp", "adele", "gosling", "jackson", "keanu", "potter", "cruise", "arnie", "diaz", "murray", "cruz", "bee", "leia", "hova", "scarjo", "audrey", "elvis", "deniro", "rdj", "holmes", "timber", "gates", "yeezy", "jobs", "fey", "owen", "whoopi", "portman", "julia", "alba", "liz", "maddy", "vaughn", "oprah", "gaga", "ellen", "marley", "ford", "bruce", "carrey", "bond", "samuel", "mila"],
-		initialDelayTime: 500,
+		modes: {
+			waiting: 'waiting', initialDelay: 'initialDelay', revealChoices: 'revealChoices',
+			recognizeYours: 'recognizeYours', yourFeedback: 'yourFeedback',
+			recognizeDistractor: 'recognizeDistractor', finished: 'finished'
+		},
+		aliasList: ["leo", "martha", "jordan", "zooey", "angie", "perry", "stiller", "pink", "halle", "lopez", "marilyn", "spears", "aniston", "spock", "freeman", "pitt", "will", "lucy", "rihanna", "cera", "swift", "depp", "adele", "gosling", "jackson", "keanu", "potter", "cruise", "arnie", "diaz", "murray", "cruz", "bee", "leia", "hova", "scarjo", "audrey", "elvis", "deniro", "stark", "holmes", "timber", "gates", "yeezy", "jobs", "fey", "owen", "whoopi", "portman", "julia", "alba", "liz", "maddy", "vaughn", "oprah", "gaga", "ellen", "marley", "ford", "bruce", "carrey", "bond", "samuel", "mila"],
+		initialDelayTime: 800,
 		revealTime: 200,
+		feedbackTime: 1000,
+		finishDelayTime: 1000,
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
+			var distractorPosition = this.randomDistractorPosition();
 			this.model = new RecognitionSegmentsModel({
 				mode: this.modes.waiting,
 				modeMeta: null,
 				userRow: 2, // middle
 				userCol: 2,
+				distractorRow: distractorPosition.row,
+				distractorCol: distractorPosition.col,
 				timing: {},
 				discoverChoices: [],
 				yourChoice: randomChoice(),
@@ -67,6 +73,28 @@ function (App, Common, StateApp, RecognitionSegments) {
 			}, this);
 		},
 
+		// returns the position of a distractor
+		randomDistractorPosition: function () {
+			// outside corners
+			var outsidePositions = [
+				{ row: 0, col: 0 },
+				{ row: 0, col: 2 },
+				{ row: 0, col: 4 },
+				{ row: 2, col: 0 },
+				{ row: 2, col: 4 },
+				{ row: 4, col: 0 },
+				{ row: 4, col: 2 },
+				{ row: 4, col: 4 }
+			]
+			return outsidePositions[Math.floor(Math.random() * outsidePositions.length)];
+		},
+
+		changeMode: function (mode, modeMeta) {
+			this.model.set({ mode: mode, modeMeta: modeMeta });
+			this.model.save();
+		},
+
+		// TODO: implement this for timing
 		modeChanged: function () {
 			var model = this.model;
 			var timing = model.get("timing");
@@ -119,41 +147,59 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 		startTrial: function () {
 			window.p = this.participant;
-			this.model.set({ mode: this.modes.initialDelay, modeMeta: null });
+			this.changeMode(this.modes.initialDelay);
 			setTimeout(this.doRevealChoices.bind(this), this.initialDelayTime);
 		},
 
 		doRevealChoices: function () {
-			this.model.set({ mode: this.modes.revealChoices, modeMeta: null });
+			this.changeMode(this.modes.revealChoices);
 			this.participant.set("choice", this.model.get("yourChoice"));
-			setTimeout(function () {
-				this.model.set({ mode: this.modes.recognizeYours, modeMeta: null });
+
+			// hide the choice and wait for input to indicate recognition
+			this.revealTimer = setTimeout(function () {
+				this.revealTimer = null;
+				this.changeMode(this.modes.recognizeYours);
 				this.participant.set("choice", null);
 			}.bind(this), this.revealTime);
+		},
+
+		doYourFeedback: function (choice) {
+			// move to your feedback mode to show the participant if they entered the right choice
+			var feedback = (choice === this.model.get("yourChoice"));
+			this.changeMode(this.modes.yourFeedback, feedback);
+			this.participant.set({
+				"choice": null,
+				"feedback": feedback
+			});
+
+			setTimeout(function () {
+				console.log("moving to recognize distractor mode");
+				this.changeMode(this.modes.recognizeDistractor);
+				this.participant.set({"feedback": null});
+			}.bind(this), this.feedbackTime);
 		},
 
 		handleInput: function (choice) {
 			var mode = this.model.get("mode");
 			console.log("mode is", mode);
-			// discover mode = A-D animate, E moves to next mode
-			if (mode === this.modes.initialDelay) {
+
+			if (mode === this.modes.initialDelay || mode === this.modes.yourFeedback || mode === this.modes.distractorDelay) {
 				// do nothing (perhaps log this? not sure)
-			} else if (mode === this.modes.recognizeYours) {
-				this.model.set({ mode: this.modes.yourFeedback, modeMeta: choice === this.yourChoice });
-				this.model.save();
+				console.log("should ignore user input", choice);
 				this.participant.set("choice", null);
 
-			// select row = A-E choose row
+			} else if (mode === this.modes.revealChoices || mode === this.modes.recognizeYours) {
+				clearTimeout(this.revealTimer);
+				this.revealTimer = null;
+
+				this.doYourFeedback(choice);
 			} else if (mode === this.modes.recognizeDistractor) {
-				this.model.set({
-					mode: this.modes.finished,
-					modeMeta: choice
-				});
-				this.model.save();
+				this.changeMode(this.modes.finished);
 
-				// the full location has been entered now, so transition to next state after some delay
-				setTimeout(function () { this.stateApp.next(); }.bind(this), 2000);
+				this.participant.set("choice", null); // ignore any choices here
 
+				// trial over, so transition to next state after some delay
+				setTimeout(function () { this.stateApp.next(); }.bind(this), this.finishDelayTime);
 			}
 		},
 
@@ -180,10 +226,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 				correct: this.model.isCorrect(),
 				userRow: this.model.get("userRow"),
 				userCol: this.model.get("userCol"),
-				selectedCol: this.model.get("modeMeta").selectedCol,
-				selectedRow: this.model.get("modeMeta").selectedRow,
 				timing: this.model.get("timing"),
-				discoverChoices: this.model.get("discoverChoices")
 			});
 		},
 

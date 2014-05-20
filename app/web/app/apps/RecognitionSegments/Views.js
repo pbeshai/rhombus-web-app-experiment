@@ -15,6 +15,17 @@ function (App, Common, RecognitionSegments) {
 
 		cssClass: function (model) { return "br-corner-message"; },
 
+		overlay: function (model) {
+			var classes = "fast-transition ";
+			if (model.get("feedback")) {
+				return classes + "green";
+			} else if (model.get("feedback") === false) {
+				return classes + "red";
+			}
+			return classes + "transparent";
+		},
+
+
 		beforeRender: function () {
 			Common.Views.ParticipantDisplay.prototype.beforeRender.apply(this, arguments);
 
@@ -95,9 +106,15 @@ function (App, Common, RecognitionSegments) {
 			if (!this.participants || this.participants.length === 0) return;
 
 			var userLocation = this.options.userRow * this.numRows + this.options.userCol;
+			var distractorLocation = this.options.distractorRow * this.numRows + this.options.distractorCol;
 			for (var i = 0; i < this.numRows * this.numCols; i++) {
 				if (i !== userLocation) {
-					this.insertView(".grid-cell-" + i, new RecognitionSegmentsViews.Play.Participant({ model: new Backbone.Model({ alias: this.options.aliases[i]}) }));
+					var userModel = new Backbone.Model({ alias: this.options.aliases[i]});
+					if (i === distractorLocation) {
+						this.distractor = userModel;
+					}
+
+					this.insertView(".grid-cell-" + i, new RecognitionSegmentsViews.Play.Participant({ model: userModel }));
 				} else {
 					this.insertView(".grid-cell-" + i, new RecognitionSegmentsViews.Play.Participant({ model: this.participants.at(0) }));
 				}
@@ -109,25 +126,27 @@ function (App, Common, RecognitionSegments) {
 			var mode = this.options.mode, modeMeta = this.options.modeMeta;
 			// TODO: render differently depending on value of mode
 			// initial load -- fade in
-			this.$el.animate({opacity: 1}, 500);
+			this.$el.animate({opacity: 1}, 800);
 		},
 
 		update: function (data) {
-			if (data.mode === "recognizeYours") {
-				this.triggerDistractor();
-			} else if (data.mode === "recognizeDistractor") {
-				this.triggerNext();
+			if (data.mode === "revealChoices") {
+				this.distractor.set("choice", this.options.distractorChoice);
+			} else {
+				this.distractor.set("choice", null);
+
+				if (data.mode === "yourFeedback") {
+					this.showFeedback(data.modeMeta);
+				} else if (data.mode === "recognizeDistractor") {
+					// this.triggerRecognizeDistractor();
+				} else if (data.mode === "finished") {
+					this.$el.animate({opacity: 0}, 400);
+				}
 			}
 		},
 
-		// button pressed should have been the one that matched yours, cause distractor to go off
-		triggerDistractor: function () {
-
-		},
-
-		// button pressed should have been the one that matched the distractor, should go ot next state really...
-		triggerNext: function () {
-
+		showFeedback: function (correct) {
+			console.log("user was", correct ? "correct" : "incorrect");
 		},
 
 		serialize: function () {
