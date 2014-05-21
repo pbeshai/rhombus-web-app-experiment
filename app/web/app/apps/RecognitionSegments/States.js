@@ -15,17 +15,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 	var RecognitionSegmentsModel = Common.Models.ViewModel.extend({
 		isCorrect: function () {
-			return true;
-		},
-
-		logDiscoverChoice: function (choice) {
-			var choices = this.get("discoverChoices");
-			var now = new Date().getTime();
-			var start = this.get("timing").start;
-
-			choices.push([choice, now - start]);
-
-			console.log("new choices", choices);
+			return this.get("guessedUserChoice") === this.get("userChoice");
 		}
 	});
 
@@ -38,12 +28,12 @@ function (App, Common, StateApp, RecognitionSegments) {
 		view: "RecognitionSegments::play",
 		modes: {
 			waiting: 'waiting', initialDelay: 'initialDelay', revealChoices: 'revealChoices',
-			recognizeYours: 'recognizeYours', yourFeedback: 'yourFeedback',
+			recognizeUser: 'recognizeUser', userFeedback: 'userFeedback',
 			recognizeDistractor: 'recognizeDistractor', finished: 'finished'
 		},
 		aliasList: ["leo", "martha", "jordan", "zooey", "angie", "perry", "stiller", "pink", "halle", "lopez", "marilyn", "spears", "aniston", "spock", "freeman", "pitt", "will", "lucy", "rihanna", "cera", "swift", "depp", "adele", "gosling", "jackson", "keanu", "potter", "cruise", "arnie", "diaz", "murray", "cruz", "bee", "leia", "hova", "scarjo", "audrey", "elvis", "deniro", "stark", "holmes", "timber", "gates", "yeezy", "jobs", "fey", "owen", "whoopi", "portman", "julia", "alba", "liz", "maddy", "vaughn", "oprah", "gaga", "ellen", "marley", "ford", "bruce", "carrey", "bond", "samuel", "mila"],
 		initialDelayTime: 800,
-		revealTime: 200,
+		revealTime: 150,
 		feedbackTime: 1000,
 		finishDelayTime: 1000,
 
@@ -59,14 +49,13 @@ function (App, Common, StateApp, RecognitionSegments) {
 				distractorCol: distractorPosition.col,
 				timing: {},
 				discoverChoices: [],
-				yourChoice: randomChoice(),
+				userChoice: randomChoice(),
 				distractorChoice: randomChoice()
 			});
 
 			this.aliases = _.shuffle(this.aliasList); // provide the aliases for the extra grid places
 
 			this.listenTo(this.model, "change", function (model) {
-				console.log("model changed", model.changed);
 				if (model.hasChanged('mode')) {
 					this.modeChanged();
 				}
@@ -75,7 +64,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 		// returns the position of a distractor
 		randomDistractorPosition: function () {
-			// outside corners
+			// outside corners and midpoints
 			var outsidePositions = [
 				{ row: 0, col: 0 },
 				{ row: 0, col: 2 },
@@ -94,7 +83,6 @@ function (App, Common, StateApp, RecognitionSegments) {
 			this.model.save();
 		},
 
-		// TODO: implement this for timing
 		modeChanged: function () {
 			var model = this.model;
 			var timing = model.get("timing");
@@ -102,22 +90,20 @@ function (App, Common, StateApp, RecognitionSegments) {
 			var now = new Date().getTime();
 
 			switch(mode) {
-				case this.modes.discover:
+				case this.modes.revealChoices:
 					timing.start = now;
 					break;
-				case this.modes.selectRow:
-					timing.discover = now - timing.start;
+				case this.modes.userFeedback:
+					timing.userFeedback = now - timing.start;
 					break;
-				case this.modes.selectCol:
-					timing.selectRow = now - timing.start - timing.discover;
+				case this.modes.recognizeDistractor:
+					timing.recognizeDistractorStart = now;
 					break;
-				case this.modes.selected:
-					timing.end = now;
-					timing.selectCol = now - timing.start - timing.discover - timing.selectRow;
+				case this.modes.finished:
+					timing.recognizeDistractorEnd = now - timing.recognizeDistractorStart;
 					timing.total = now - timing.start;
 					break;
 			}
-			// console.log("NEW TIMING", timing);
 		},
 
 		// this.input is a participant collection.
@@ -125,6 +111,8 @@ function (App, Common, StateApp, RecognitionSegments) {
 			// only work with a single participant.
 			this.participants = this.input.participants; // need collection for ease of use with framework
 			this.setParticipant(this.participants.at(0));
+
+			console.log("user", this.model.get("userChoice"), "distractor", this.model.get("distractorChoice"));
 		},
 
 		setParticipant: function (participant) {
@@ -146,34 +134,33 @@ function (App, Common, StateApp, RecognitionSegments) {
 		},
 
 		startTrial: function () {
-			window.p = this.participant;
 			this.changeMode(this.modes.initialDelay);
 			setTimeout(this.doRevealChoices.bind(this), this.initialDelayTime);
 		},
 
 		doRevealChoices: function () {
 			this.changeMode(this.modes.revealChoices);
-			this.participant.set("choice", this.model.get("yourChoice"));
+			// this.participant.set("choice", this.model.get("userChoice"));
 
 			// hide the choice and wait for input to indicate recognition
 			this.revealTimer = setTimeout(function () {
 				this.revealTimer = null;
-				this.changeMode(this.modes.recognizeYours);
+				this.changeMode(this.modes.recognizeUser);
 				this.participant.set("choice", null);
 			}.bind(this), this.revealTime);
 		},
 
 		doYourFeedback: function (choice) {
 			// move to your feedback mode to show the participant if they entered the right choice
-			var feedback = (choice === this.model.get("yourChoice"));
-			this.changeMode(this.modes.yourFeedback, feedback);
+			var feedback = (choice === this.model.get("userChoice"));
+			this.model.set("guessedUserChoice", choice);
+			this.changeMode(this.modes.userFeedback, feedback);
 			this.participant.set({
 				"choice": null,
 				"feedback": feedback
 			});
 
 			setTimeout(function () {
-				console.log("moving to recognize distractor mode");
 				this.changeMode(this.modes.recognizeDistractor);
 				this.participant.set({"feedback": null});
 			}.bind(this), this.feedbackTime);
@@ -183,17 +170,17 @@ function (App, Common, StateApp, RecognitionSegments) {
 			var mode = this.model.get("mode");
 			console.log("mode is", mode);
 
-			if (mode === this.modes.initialDelay || mode === this.modes.yourFeedback || mode === this.modes.distractorDelay) {
-				// do nothing (perhaps log this? not sure)
-				console.log("should ignore user input", choice);
+			if (mode === this.modes.initialDelay || mode === this.modes.userFeedback || mode === this.modes.distractorDelay) {
+				// ignore user input
 				this.participant.set("choice", null);
 
-			} else if (mode === this.modes.revealChoices || mode === this.modes.recognizeYours) {
+			} else if (mode === this.modes.revealChoices || mode === this.modes.recognizeUser) {
 				clearTimeout(this.revealTimer);
 				this.revealTimer = null;
-
 				this.doYourFeedback(choice);
+
 			} else if (mode === this.modes.recognizeDistractor) {
+				this.model.set("guessedDistractorChoice", choice);
 				this.changeMode(this.modes.finished);
 
 				this.participant.set("choice", null); // ignore any choices here
@@ -219,13 +206,14 @@ function (App, Common, StateApp, RecognitionSegments) {
 			return viewOptions;
 		},
 
-		// outputs a participant participants
 		onExit: function () {
 			return new StateApp.StateMessage({
 				participants: this.participants,
 				correct: this.model.isCorrect(),
-				userRow: this.model.get("userRow"),
-				userCol: this.model.get("userCol"),
+				guessedUserChoice: this.model.get("guessedUserChoice"),
+				userChoice: this.model.get("userChoice"),
+				guessedDistractorChoice: this.model.get("distractorChoice"),
+				distractorChoice: this.model.get("distractorChoice"),
 				timing: this.model.get("timing"),
 			});
 		},
@@ -247,8 +235,8 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 5,
-		streakRequired: 4,
+		numRepeats: 10,
+		streakRequired: 6,
 
 		initialize: function () {
 			StateApp.RepeatState.prototype.initialize.apply(this, arguments);

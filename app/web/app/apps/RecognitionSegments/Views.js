@@ -132,10 +132,16 @@ function (App, Common, RecognitionSegments) {
 		update: function (data) {
 			if (data.mode === "revealChoices") {
 				this.distractor.set("choice", this.options.distractorChoice);
+				this.participants.at(0).set("choice", this.options.userChoice);
 			} else {
-				this.distractor.set("choice", null);
+				if (this.distractor) {
+					this.distractor.set("choice", null);
+				}
+				if (this.participants.at(0)) {
+					this.participants.at(0).set("choice", null);
+				}
 
-				if (data.mode === "yourFeedback") {
+				if (data.mode === "userFeedback") {
 					this.showFeedback(data.modeMeta);
 				} else if (data.mode === "recognizeDistractor") {
 					// this.triggerRecognizeDistractor();
