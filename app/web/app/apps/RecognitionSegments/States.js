@@ -259,6 +259,14 @@ function (App, Common, StateApp, RecognitionSegments) {
 				clearTimeout(this.distractorRevealTimer);
 				this.userRevealTimer = null;
 				this.distractorRevealTimer = null;
+
+				// ensure we have timings for these.
+				var timing = this.model.get("timing");
+				var now = new Date().getTime();
+				timing.userRevealTime = timing.userRevealTime || now - timing.start;
+				timing.distractorRevealTime = timing.distractorRevealTime || now - timing.start;
+				timing.recognizeUserStart = timing.recognizeUserStart || now - timing.start;
+
 				this.doUserFeedback(choice);
 
 			} else if (mode === this.modes.userFeedback || mode === this.modes.recognizeDistractor) {
@@ -317,19 +325,25 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 2,
+		numRepeats: 4,
 
 		stateOutput: function (output) {
-			console.log("got state output", output);
 			var currentIndex = this.currentState.options.stateIndex;
-			console.log("@@@", this);
-			this.log(this.logTrial(output), { trial: currentIndex, block: this.name });
+			var trialOutput = _.omit(output, ['participants', 'clone']);
+			trialOutput.trial = currentIndex;
+			this.log(this.logTrial(trialOutput), { trial: currentIndex });
 
-			return output;
+			return trialOutput;
 		},
 
 		logTrial: function (trialOutput) {
-			return _.omit(trialOutput, ['participants', 'clone']);
+			return {
+        trialOutputs: {
+          "block": this.name,
+          "current": trialOutput,
+          "previous": this.stateOutputs.slice()
+        }
+      };
 		}
 	});
 

@@ -22,35 +22,54 @@ function filenameFormat(date) {
 }
 
 function recognitionResults(req, res) {
+	var now = new Date();
+	var config = req.body.config;
+	var version = req.body.version;
+
 	var flags = req.body.flags;
 
 	if (flags && flags.trial !== undefined && flags.trial !== false) {
-		console.log("Trial ", flags.trial);
-		var results = req.body;
-		var timing = results.timing;
 
-		var header = "Block,Trial,UserCorrect,DistractorCorrect,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
-		var output = [ flags.block,
-			flags.trial,
-			results.userChoice === results.guessedUserChoice ? 1 : 0,
-			results.distractorChoice === results.guessedDistractorChoice ? 1 : 0,
-			results.userChoice,
-			results.distractorChoice,
-			results.guessedUserChoice,
-			results.guessedDistractorChoice,
-			timing.total,
-			timing.start,
-			timing.userRevealTime,
-			timing.distractorRevealTime,
-			timing.recognizeUserStart,
-			timing.userFeedback,
-			timing.recognizeDistractorStart,
-			timing.recognizeDistractorEnd,
-		];
+		var stream = fs.createWriteStream("log/RecognitionSegments/trials/trial_results." + filenameFormat(now) + ".csv");
+		stream.once('open', function(fd) {
+			function output (str) {
+				logger.info(str);
+				stream.write(str + "\n");
+			}
+			output("RecognitionSegments Intermediate Trial Results (v" + version + ")");
+			output(now.toString());
+			output("");
 
-		console.log(header);
-		console.log(output.join(","));
+			var trialOutputs = req.body.trialOutputs;
 
+			var header = "Block,Trial,UserCorrect,DistractorCorrect,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
+			output(header);
+
+			var prevTrials = trialOutputs.previous || [];
+
+			_.each(prevTrials.concat(trialOutputs.current), function (results) {
+				var timing = results.timing;
+				var data = [ trialOutputs.block,
+					results.trial,
+					results.userChoice === results.guessedUserChoice ? 1 : 0,
+					results.distractorChoice === results.guessedDistractorChoice ? 1 : 0,
+					results.userChoice,
+					results.distractorChoice,
+					results.guessedUserChoice,
+					results.guessedDistractorChoice,
+					timing.total,
+					timing.start,
+					timing.userRevealTime,
+					timing.distractorRevealTime,
+					timing.recognizeUserStart,
+					timing.userFeedback,
+					timing.recognizeDistractorStart,
+					timing.recognizeDistractorEnd,
+				];
+
+				output(data.join(","));
+			});
+		});
 	} else {
 		console.log("Not trial, so end of block?");
 	}
