@@ -9,6 +9,7 @@ var fs = require('fs'),
 function initialize(site) {
 	site.post("/api/apps/q/log", questionResults);
 	site.post("/api/apps/warmup/log", warmupResults);
+	site.post("/api/apps/RecognitionSegments/log", recognitionResults);
 }
 
 
@@ -18,6 +19,41 @@ function z(str) { // add leading zero
 
 function filenameFormat(date) {
 	return date.getFullYear()+z(date.getMonth()+1)+z(date.getDate())+"_"+z(date.getHours())+z(date.getMinutes())+z(date.getSeconds());
+}
+
+function recognitionResults(req, res) {
+	var flags = req.body.flags;
+
+	if (flags && flags.trial !== undefined && flags.trial !== false) {
+		console.log("Trial ", flags.trial);
+		var results = req.body;
+		var timing = results.timing;
+
+		var header = "Block,Trial,UserCorrect,DistractorCorrect,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
+		var output = [ flags.block,
+			flags.trial,
+			results.userChoice === results.guessedUserChoice ? 1 : 0,
+			results.distractorChoice === results.guessedDistractorChoice ? 1 : 0,
+			results.userChoice,
+			results.distractorChoice,
+			results.guessedUserChoice,
+			results.guessedDistractorChoice,
+			timing.total,
+			timing.start,
+			timing.userRevealTime,
+			timing.distractorRevealTime,
+			timing.recognizeUserStart,
+			timing.userFeedback,
+			timing.recognizeDistractorStart,
+			timing.recognizeDistractorEnd,
+		];
+
+		console.log(header);
+		console.log(output.join(","));
+
+	} else {
+		console.log("Not trial, so end of block?");
+	}
 }
 
 function warmupResults(req, res) {

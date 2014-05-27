@@ -322,7 +322,8 @@ function (App, Common, StateApp, RecognitionSegments) {
 		stateOutput: function (output) {
 			console.log("got state output", output);
 			var currentIndex = this.currentState.options.stateIndex;
-			this.log(this.logTrial(output), { trial: currentIndex });
+			console.log("@@@", this);
+			this.log(this.logTrial(output), { trial: currentIndex, block: this.name });
 
 			return output;
 		},
