@@ -302,7 +302,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 				correct: this.model.isCorrect(),
 				guessedUserChoice: this.model.get("guessedUserChoice"),
 				userChoice: this.model.get("userChoice"),
-				guessedDistractorChoice: this.model.get("distractorChoice"),
+				guessedDistractorChoice: this.model.get("guessedDistractorChoice"),
 				distractorChoice: this.model.get("distractorChoice"),
 				timing: this.model.get("timing"),
 			});
@@ -325,13 +325,14 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 4,
+		numRepeats: 2,
 
 		stateOutput: function (output) {
+			console.log("@@ STATE OUTPUTS");
 			var currentIndex = this.currentState.options.stateIndex;
 			var trialOutput = _.omit(output, ['participants', 'clone']);
 			trialOutput.trial = currentIndex;
-			this.log(this.logTrial(trialOutput), { trial: currentIndex });
+			this.log(this.logTrial(trialOutput), { trial: currentIndex + 1 });
 
 			return trialOutput;
 		},
@@ -349,12 +350,41 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 	RecognitionSegmentsStates.Conclusion = StateApp.ViewState.extend({
 		name: "conclusion",
-		view: "RecognitionSegments::conclusion"
+		view: "RecognitionSegments::conclusion",
+
+		afterRender: function () {
+      this.log(this.logResults());
+    },
+
+		logResults: function () {
+			console.log("@@ log results in CONCLUSION", this.input);
+      var logData = {};
+      var block = this.options.block;
+      logData[block] = {
+        results: this.input.stateOutputs,
+        config: this.config
+      };
+      return logData;
+    }
 	});
 
 	RecognitionSegmentsStates.BlockComplete = StateApp.ViewState.extend({
 		name: "block-complete",
-		view: "RecognitionSegments::block-complete"
+		view: "RecognitionSegments::block-complete",
+		afterRender: function () {
+      this.log(this.logResults());
+    },
+
+		logResults: function () {
+			console.log("@@ log results in block", this.input);
+      var logData = {};
+      var block = this.options.block;
+      logData[block] = {
+        results: this.input.stateOutputs,
+        config: this.config
+      };
+      return logData;
+    }
 	});
 
 	return RecognitionSegmentsStates;

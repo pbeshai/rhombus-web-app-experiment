@@ -17,7 +17,10 @@ function (App, StateApp, CommonStateApps, RecognitionSegments) {
 							RecognitionSegments.States.RepeatedPlay,
 							RecognitionSegments.States.Conclusion ],
 		prepend: { attendance: false },
-		stateOptions: [ { name:"slow", userSpeed: 0 }, null, { name: "medium", userSpeed: 1 }, null, { name: "fast", userSpeed: 2 } ]
+		stateOptions: [
+			{ name:"slow", userSpeed: 0 }, { block: "slow" },
+			{ name: "medium", userSpeed: 1 }, { block: "medium" },
+			{ name: "fast", userSpeed: 2 }, { block: "fast" } ]
 	});
 
 	// description for use in router

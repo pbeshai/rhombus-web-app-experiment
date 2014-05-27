@@ -48,7 +48,7 @@ function recognitionResults(req, res) {
 			var prevTrials = trialOutputs.previous || [];
 
 			_.each(prevTrials.concat(trialOutputs.current), function (results) {
-				var timing = results.timing;
+				var timing = results.timing || {};
 				var data = [ trialOutputs.block,
 					results.trial,
 					results.userChoice === results.guessedUserChoice ? 1 : 0,
@@ -69,9 +69,58 @@ function recognitionResults(req, res) {
 
 				output(data.join(","));
 			});
+
+			res.send(200);
 		});
 	} else {
-		console.log("Not trial, so end of block?");
+		var stream = fs.createWriteStream("log/RecognitionSegments/results." + filenameFormat(now) + ".csv");
+		stream.once('open', function(fd) {
+			function output (str) {
+				logger.info(str);
+				stream.write(str + "\n");
+			}
+			output("RecognitionSegments Results (v" + version + ")");
+			output(now.toString());
+			output("");
+
+			var trialOutputs = req.body.trialOutputs;
+			// output slow, medium, fast
+			outputBlock("slow");
+			outputBlock("medium");
+			outputBlock("fast");
+
+			function outputBlock(block) {
+				var header = "Block,Trial,UserCorrect,DistractorCorrect,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
+				output(header);
+				var resultsArray = req.body[block].results;
+				_.each(resultsArray, function (results) {
+					var timing = results.timing || {};
+					var data = [ block,
+						results.trial,
+						results.userChoice === results.guessedUserChoice ? 1 : 0,
+						results.distractorChoice === results.guessedDistractorChoice ? 1 : 0,
+						results.userChoice,
+						results.distractorChoice,
+						results.guessedUserChoice,
+						results.guessedDistractorChoice,
+						timing.total,
+						timing.start,
+						timing.userRevealTime,
+						timing.distractorRevealTime,
+						timing.recognizeUserStart,
+						timing.userFeedback,
+						timing.recognizeDistractorStart,
+						timing.recognizeDistractorEnd,
+					];
+
+					output(data.join(","));
+				});
+				output("");
+				output("");
+			}
+
+			res.send(200);
+		});
 	}
 }
 
@@ -84,6 +133,8 @@ function warmupResults(req, res) {
 		console.log("Not trial");
 	}
 	console.log(req.body);
+
+	res.send(200);
 }
 
 function questionResults(req, res) {
