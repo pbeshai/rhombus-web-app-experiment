@@ -12,12 +12,12 @@ function (App, StateApp, CommonStateApps, RecognitionSegments) {
 		id: "RecognitionSegments",
 		version: "1.0",
 		config: RecognitionSegments.config(),
-		States: [ RecognitionSegments.States.RepeatedPlay,
-							RecognitionSegments.States.RepeatedPlay,
+		States: [ RecognitionSegments.States.RepeatedPlay, RecognitionSegments.States.BlockComplete,
+							RecognitionSegments.States.RepeatedPlay, RecognitionSegments.States.BlockComplete,
 							RecognitionSegments.States.RepeatedPlay,
 							RecognitionSegments.States.Conclusion ],
 		prepend: { attendance: false },
-		stateOptions: [ { name:"slow", userSpeed: 0 }, { name: "medium", userSpeed: 1 }, { name: "fast", userSpeed: 2 } ]
+		stateOptions: [ { name:"slow", userSpeed: 0 }, null, { name: "medium", userSpeed: 1 }, null, { name: "fast", userSpeed: 2 } ]
 	});
 
 	// description for use in router
@@ -26,7 +26,7 @@ function (App, StateApp, CommonStateApps, RecognitionSegments) {
 			return new RecognitionSegmentsApp(attrs, { autoAddNew: true });
 		},
 		AppControlsView: undefined,
-		title: "Recognition (Segmented Display)"
+		title: "Recognition Experiment"
 	};
 
 	return RecognitionSegmentsApp;

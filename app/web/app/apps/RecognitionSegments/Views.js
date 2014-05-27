@@ -178,5 +178,9 @@ function (App, Common, RecognitionSegments) {
 		template: "app/apps/RecognitionSegments/templates/conclusion"
 	}));
 
+	RecognitionSegmentsViews.BlockComplete = App.registerView("RecognitionSegments::block-complete", Backbone.View.extend({
+		template: "app/apps/RecognitionSegments/templates/block_complete"
+	}));
+
 	return RecognitionSegmentsViews;
 });

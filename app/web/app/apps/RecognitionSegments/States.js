@@ -317,7 +317,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 48,
+		numRepeats: 2,
 
 		stateOutput: function (output) {
 			console.log("got state output", output);
@@ -335,6 +335,11 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.Conclusion = StateApp.ViewState.extend({
 		name: "conclusion",
 		view: "RecognitionSegments::conclusion"
+	});
+
+	RecognitionSegmentsStates.BlockComplete = StateApp.ViewState.extend({
+		name: "block-complete",
+		view: "RecognitionSegments::block-complete"
 	});
 
 	return RecognitionSegmentsStates;
