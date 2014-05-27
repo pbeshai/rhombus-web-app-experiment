@@ -33,7 +33,6 @@ function (App, Common, RecognitionSegments) {
 		}
 	});
 
-
 	/*
 		_   top
    |_|  upper left, middle, upper right
@@ -95,7 +94,7 @@ function (App, Common, RecognitionSegments) {
 		}
 	});
 
-	RecognitionSegmentsViews.Play.LayoutOrig = App.registerView("RecognitionSegments::play", App.BaseView.extend({
+	RecognitionSegmentsViews.Play.Layout = App.registerView("RecognitionSegments::play", App.BaseView.extend({
 		template: "app/apps/RecognitionSegments/templates/grid",
 		numRows: 5,
 		numCols: 5,
@@ -131,8 +130,18 @@ function (App, Common, RecognitionSegments) {
 
 		update: function (data) {
 			if (data.mode === "revealChoices") {
-				this.distractor.set("choice", this.options.distractorChoice);
-				this.participants.at(0).set("choice", this.options.userChoice);
+				if (data.modeMeta.user) {
+					this.participants.at(0).set("choice", this.options.userChoice);
+				} else {
+					this.participants.at(0).set("choice", null);
+				}
+				if (data.modeMeta.distractor) {
+					this.distractor.set("choice", this.options.distractorChoice);
+				} else {
+					this.distractor.set("choice", null);
+				}
+
+
 			} else {
 				if (this.distractor) {
 					this.distractor.set("choice", null);
@@ -159,7 +168,7 @@ function (App, Common, RecognitionSegments) {
 			return {
 				participantReady: this.options.participants.length > 0,
 				rows: this.numRows,
-				columns: this.numCols,
+				columns: this.numCols
 			};
 		}
 	}));

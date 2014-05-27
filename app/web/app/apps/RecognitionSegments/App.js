@@ -8,22 +8,26 @@ define([
 
 function (App, StateApp, CommonStateApps, RecognitionSegments) {
 
-	var WarmupApp = CommonStateApps.BasicApp.extend({
+	var RecognitionSegmentsApp = CommonStateApps.BasicApp.extend({
 		id: "RecognitionSegments",
 		version: "1.0",
 		config: RecognitionSegments.config(),
-		States: [ RecognitionSegments.States.RepeatedPlay, RecognitionSegments.States.Conclusion ],
-		prepend: { attendance: false }
+		States: [ RecognitionSegments.States.RepeatedPlay,
+							RecognitionSegments.States.RepeatedPlay,
+							RecognitionSegments.States.RepeatedPlay,
+							RecognitionSegments.States.Conclusion ],
+		prepend: { attendance: false },
+		stateOptions: [ { name:"slow", userSpeed: 0 }, { name: "medium", userSpeed: 1 }, { name: "fast", userSpeed: 2 } ]
 	});
 
 	// description for use in router
-	WarmupApp.app = {
+	RecognitionSegmentsApp.app = {
 		instantiate: function (attrs) {
-			return new WarmupApp(attrs, { autoAddNew: true });
+			return new RecognitionSegmentsApp(attrs, { autoAddNew: true });
 		},
 		AppControlsView: undefined,
 		title: "Recognition (Segmented Display)"
 	};
 
-	return WarmupApp;
+	return RecognitionSegmentsApp;
 });
