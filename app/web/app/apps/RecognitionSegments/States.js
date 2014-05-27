@@ -24,7 +24,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 	}
 
 	RecognitionSegmentsStates.Play = StateApp.ViewState.extend({
-		name: "play",
+		name: "trial",
 		view: "RecognitionSegments::play",
 		modes: {
 			waiting: 'waiting', initialDelay: 'initialDelay', revealChoices: 'revealChoices',
@@ -317,7 +317,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 3,
+		numRepeats: 48,
 
 		stateOutput: function (output) {
 			console.log("got state output", output);
