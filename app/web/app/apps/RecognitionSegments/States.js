@@ -241,7 +241,8 @@ function (App, Common, StateApp, RecognitionSegments) {
 			});
 
 			setTimeout(function () {
-				if (this.mode === this.modes.userFeedback) { // ensure multiple button presses haven't jumped us ahead
+				console.log("check mode", this.mode);
+				if (this.model.get("mode") === this.modes.userFeedback) { // ensure multiple button presses haven't jumped us ahead
 					this.changeMode(this.modes.recognizeDistractor);
 					this.participant.set({"feedback": null});
 				}
@@ -281,6 +282,9 @@ function (App, Common, StateApp, RecognitionSegments) {
 				if (this.finalTimer == null) { // ensure we only do this once
 					this.finalTimer = setTimeout(function () {
 						this.finalTimer = null;
+						if (this.participant.get("feedback") != null) { // in case we skipped cleaning up feedback, clear it here
+							this.participant.set({"feedback": null});
+						}
 						this.stateApp.next();
 					}.bind(this), this.finishDelayTime);
 				}
@@ -379,7 +383,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 		name: "block-complete",
 		view: "RecognitionSegments::block-complete",
 		breakDuration: 180000,
-		minimumBreak: 5000,
+		minimumBreak: 60000,
 
 		beforeRender: function () {
 			this.options.endTime = new Date().getTime() + this.breakDuration;
