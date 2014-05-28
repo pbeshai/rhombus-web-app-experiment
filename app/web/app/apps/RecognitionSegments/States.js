@@ -241,8 +241,10 @@ function (App, Common, StateApp, RecognitionSegments) {
 			});
 
 			setTimeout(function () {
-				this.changeMode(this.modes.recognizeDistractor);
-				this.participant.set({"feedback": null});
+				if (this.mode === this.modes.userFeedback) { // ensure multiple button presses haven't jumped us ahead
+					this.changeMode(this.modes.recognizeDistractor);
+					this.participant.set({"feedback": null});
+				}
 			}.bind(this), this.feedbackTime);
 		},
 
@@ -276,7 +278,12 @@ function (App, Common, StateApp, RecognitionSegments) {
 				this.participant.set("choice", null); // ignore any choices here
 
 				// trial over, so transition to next state after some delay
-				setTimeout(function () { this.stateApp.next(); }.bind(this), this.finishDelayTime);
+				if (this.finalTimer == null) { // ensure we only do this once
+					this.finalTimer = setTimeout(function () {
+						this.finalTimer = null;
+						this.stateApp.next();
+					}.bind(this), this.finishDelayTime);
+				}
 			}
 		},
 
