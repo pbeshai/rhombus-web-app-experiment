@@ -15,13 +15,13 @@ function (App, StateApp, CommonStateApps, RecognitionSegmentsWarmup) {
 		States: [ RecognitionSegmentsWarmup.States.RepeatedPlay,
 							RecognitionSegmentsWarmup.States.Conclusion ],
 		prepend: { attendance: false },
-		stateOptions: [	{ name:"slow", userSpeed: 0 } ]
+		stateOptions: [	{ name:"warmup", userSpeed: 0 } ]
 	});
 
 	// description for use in router
 	RecognitionSegmentsWarmupApp.app = {
 		instantiate: function (attrs) {
-			return new RecognitionSegmentsWarmupApp(attrs, { autoAddNew: true });
+			return new RecognitionSegmentsWarmupApp(attrs, { autoAddNew: true, writeLogAtEnd: false });
 		},
 		AppControlsView: undefined,
 		title: "Recognition Warmup"

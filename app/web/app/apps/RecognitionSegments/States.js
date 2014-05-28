@@ -342,7 +342,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 			console.log("@@ STATE OUTPUTS");
 			var currentIndex = this.currentState.options.stateIndex;
 			var trialOutput = _.omit(output, ['participants', 'clone']);
-			trialOutput.trial = currentIndex;
+			trialOutput.trial = currentIndex + 1;
 			this.log(this.logTrial(trialOutput), { trial: currentIndex + 1 });
 
 			return trialOutput;
@@ -398,14 +398,18 @@ function (App, Common, StateApp, RecognitionSegments) {
 					var now = new Date().getTime();
 
 					if (now - this.options.startTime >= this.minimumBreak) {
-						console.log("activating click, it's been a minute of break");
-						var breakDuration = now - this.options.startTime;
-						var logBreak = {};
-						logBreak["break-" + this.options.block] = breakDuration;
-						this.log(logBreak);
 						this.stateApp.next();
 					}
 			});
+    },
+
+		onExit: function () { // log here. two ways to exit state: via user clicking or admin clicking next state
+			var breakDuration = new Date().getTime() - this.options.startTime;
+			var logBreak = {};
+			logBreak["break-" + this.options.block] = breakDuration;
+			this.log(logBreak);
+
+			return StateApp.ViewState.prototype.onExit.apply(this, arguments);
     },
 
     viewOptions: function () {

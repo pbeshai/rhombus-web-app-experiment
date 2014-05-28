@@ -16,8 +16,8 @@ function (App, Common, StateApp, RecognitionSegmentsWarmup, RecognitionSegments)
 	RecognitionSegmentsWarmupStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegments.States.Play,
-		numRepeats: 10,
-		streakRequired: 4,
+		numRepeats: 4,
+		streakRequired: 2,
 
 		initialize: function () {
 			StateApp.RepeatState.prototype.initialize.apply(this, arguments);
@@ -27,7 +27,7 @@ function (App, Common, StateApp, RecognitionSegmentsWarmup, RecognitionSegments)
 		stateOutput: function (output) {
 			var currentIndex = this.currentState.options.stateIndex;
 			var trialOutput = _.omit(output, ['participants', 'clone']);
-			trialOutput.trial = currentIndex;
+			trialOutput.trial = currentIndex + 1;
 
 			// if we are in the last n where we need to keep track of the streak
 			if (currentIndex >= this.numRepeats - this.streakRequired) {
@@ -39,13 +39,42 @@ function (App, Common, StateApp, RecognitionSegmentsWarmup, RecognitionSegments)
 				}
 			}
 
+			this.log(this.logTrial(trialOutput), { trial: currentIndex + 1, warmup: true });
+
 			return trialOutput;
 		},
+
+		logTrial: function (trialOutput) {
+			return {
+        trialOutputs: {
+          "block": this.name,
+          "current": trialOutput,
+          "previous": this.stateOutputs.slice()
+        }
+      };
+		}
 	});
 
 	RecognitionSegmentsWarmupStates.Conclusion = StateApp.ViewState.extend({
 		name: "conclusion",
 		view: "RecognitionSegmentsWarmup::conclusion",
+
+		afterRender: function () {
+			console.log("CONCLUSION LOGGING");
+      this.log(this.logResults(), { warmup: true });
+    },
+
+		logResults: function () {
+			console.log("@@ log results in CONCLUSION", this.input);
+      var logData = {
+        warmup:  {
+          results: this.input.stateOutputs,
+          config: this.config
+        }
+      };
+
+      return logData;
+    }
 	});
 
 

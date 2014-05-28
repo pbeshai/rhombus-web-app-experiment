@@ -10,6 +10,7 @@ function initialize(site) {
 	site.post("/api/apps/q/log", questionResults);
 	site.post("/api/apps/warmup/log", warmupResults);
 	site.post("/api/apps/RecognitionSegments/log", recognitionResults);
+	site.post("/api/apps/RecognitionSegmentsWarmup/log", recognitionResults);
 }
 
 
@@ -27,16 +28,20 @@ function recognitionResults(req, res) {
 	var version = req.body.version;
 
 	var flags = req.body.flags;
+	var warmup = flags && flags.warmup;
+
+	var appId = warmup ? "RecognitionSegmentsWarmup" : "RecognitionSegments";
+
 
 	if (flags && flags.trial !== undefined && flags.trial !== false) {
 
-		var stream = fs.createWriteStream("log/RecognitionSegments/trials/trial_results." + filenameFormat(now) + ".csv");
+		var stream = fs.createWriteStream("log/" +appId + "/trials/trial_results." + filenameFormat(now) + ".csv");
 		stream.once('open', function(fd) {
 			function output (str) {
 				logger.info(str);
 				stream.write(str + "\n");
 			}
-			output("RecognitionSegments Intermediate Trial Results (v" + version + ")");
+			output(appId + " Intermediate Trial Results (v" + version + ")");
 			output(now.toString());
 			output("");
 
@@ -73,25 +78,33 @@ function recognitionResults(req, res) {
 			res.send(200);
 		});
 	} else {
-		var stream = fs.createWriteStream("log/RecognitionSegments/results." + filenameFormat(now) + ".csv");
+		var stream = fs.createWriteStream("log/" + appId + "/results." + filenameFormat(now) + ".csv");
 		stream.once('open', function(fd) {
 			function output (str) {
 				logger.info(str);
 				stream.write(str + "\n");
 			}
-			output("RecognitionSegments Results (v" + version + ")");
+			output(appId + " Results (v" + version + ")");
 			output(now.toString());
 			output("");
 
 			var trialOutputs = req.body.trialOutputs;
 			// output slow, medium, fast
-			outputBlock("slow");
-			outputBlock("medium");
-			outputBlock("fast");
+			if (warmup) {
+				outputBlock("warmup");
+			} else {
+				outputBlock("slow");
+				outputBlock("medium");
+				outputBlock("fast");
+			}
 
 			function outputBlock(block) {
 				var header = "Block,Trial,UserCorrect,DistractorCorrect,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
 				output(header);
+				if (!req.body[block]) {
+					output("Block " + block + " not found.");
+					return;
+				}
 				var resultsArray = req.body[block].results;
 				_.each(resultsArray, function (results) {
 					var timing = results.timing || {};
