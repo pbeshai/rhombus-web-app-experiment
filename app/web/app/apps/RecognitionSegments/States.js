@@ -371,13 +371,40 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.BlockComplete = StateApp.ViewState.extend({
 		name: "block-complete",
 		view: "RecognitionSegments::block-complete",
+		breakDuration: 180000,
+		minimumBreak: 60000,
+
+		beforeRender: function () {
+			this.options.endTime = new Date().getTime() + this.breakDuration;
+			this.options.startTime = new Date().getTime();
+		},
+
 		afterRender: function () {
       this.log(this.logResults());
+
+      this.stopListening();
+      this.listenTo(this.input.participants, "update:choice", function (eventParticipant, choice) {
+					var now = new Date().getTime();
+
+					if (now - this.options.startTime >= this.minimumBreak) {
+						console.log("activating click, it's been a minute of break");
+						var breakDuration = now - this.options.startTime;
+						var logBreak = {};
+						logBreak["break-" + this.options.block] = breakDuration;
+						this.log(logBreak);
+						this.stateApp.next();
+					}
+			});
     },
 
+    viewOptions: function () {
+			return {
+				endTime: this.options.endTime
+			};
+		},
+
 		logResults: function () {
-			console.log("@@ log results in block", this.input);
-      var logData = {};
+			var logData = {};
       var block = this.options.block;
       logData[block] = {
         results: this.input.stateOutputs,
