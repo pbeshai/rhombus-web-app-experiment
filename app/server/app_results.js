@@ -115,6 +115,13 @@ function recognitionResults(req, res) {
 
 					output(data.join(","));
 				});
+
+				var breakDuration = req.body["break-" + block];
+				if (breakDuration) {
+					output("");
+					output("Break," + breakDuration);
+				}
+
 				output("");
 				output("");
 			}

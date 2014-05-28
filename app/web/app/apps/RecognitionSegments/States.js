@@ -379,7 +379,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 		name: "block-complete",
 		view: "RecognitionSegments::block-complete",
 		breakDuration: 180000,
-		minimumBreak: 60000,
+		minimumBreak: 5000,
 
 		beforeRender: function () {
 			this.options.endTime = new Date().getTime() + this.breakDuration;
