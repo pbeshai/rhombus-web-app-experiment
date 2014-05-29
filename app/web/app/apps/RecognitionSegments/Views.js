@@ -152,10 +152,16 @@ function (App, Common, RecognitionSegments) {
 
 				if (data.mode === "userFeedback") {
 					this.showFeedback(data.modeMeta);
-				} else if (data.mode === "recognizeDistractor") {
-					// this.triggerRecognizeDistractor();
 				} else if (data.mode === "finished") {
-					this.$el.animate({opacity: 0}, 400);
+					if (this.options.showDistractorFeedback) {
+						this.distractor.set("feedback", data.modeMeta.distractorCorrect);
+					}
+
+					if (this.options.delayFinishFade) {
+						setTimeout(function () { this.$el.animate({opacity: 0}, 400); }.bind(this), this.options.delayFinishFade);
+					} else {
+						this.$el.animate({opacity: 0}, 400);
+					}
 				}
 			}
 		},

@@ -274,7 +274,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 			} else if (mode === this.modes.userFeedback || mode === this.modes.recognizeDistractor) {
 				this.model.set("guessedDistractorChoice", choice);
-				this.changeMode(this.modes.finished);
+				this.changeMode(this.modes.finished, { distractorCorrect: choice === this.model.get("distractorChoice") });
 
 				this.participant.set("choice", null); // ignore any choices here
 
@@ -295,7 +295,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 			var viewOptions = {
 				participants: this.participants,
 				aliases: this.aliases,
-				config: this.config,
+				config: this.config
 			};
 
 			_.extend(viewOptions, this.model.attributes);

@@ -13,9 +13,19 @@ function (App, Common, StateApp, RecognitionSegmentsWarmup, RecognitionSegments)
 	// To be used in StateApps
 	RecognitionSegmentsWarmupStates = {};
 
+	RecognitionSegmentsWarmupStates.Play = RecognitionSegments.States.Play.extend({
+		finishDelayTime: 1750,
+		viewOptions: function () { // allow time to show distractor feedback
+			var viewOpts =  RecognitionSegments.States.Play.prototype.viewOptions.apply(this, arguments);
+			viewOpts.delayFinishFade = 750;
+			viewOpts.showDistractorFeedback = true;
+			return viewOpts;
+		}
+	})
+
 	RecognitionSegmentsWarmupStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
-		State: RecognitionSegments.States.Play,
+		State: RecognitionSegmentsWarmupStates.Play,
 		numRepeats: 4,
 		streakRequired: 2,
 
