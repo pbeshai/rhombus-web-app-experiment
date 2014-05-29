@@ -39,7 +39,8 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
-			var trialConfig = this.getTrialConfig();
+			var block = this.options.parentOptions.name;
+			var trialConfig = this.getTrialConfig(block);
 			var distractorPosition = this.getDistractorPosition(trialConfig.distractorLocation);
 			this.model = new RecognitionSegmentsModel({
 				mode: this.modes.waiting,
@@ -65,13 +66,14 @@ function (App, Common, StateApp, RecognitionSegments) {
 			}, this);
 		},
 
-		getTrialConfig: function () {
+		getTrialConfig: function (block) {
+			block = block || "slow";
 			var index = this.options.stateIndex;
 			return {
 				distractorLocation: this.config.distractorLocations[index],
 				distractorSpeed: this.config.distractorSpeeds[index],
-				distractorChoice: this.config.distractorChoices[index],
-				userChoice: this.config.userChoices[index],
+				distractorChoice: this.config.distractorChoices[block][index],
+				userChoice: this.config.userChoices[block][index],
 			};
 		},
 
