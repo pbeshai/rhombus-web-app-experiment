@@ -35,7 +35,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 		initialDelayTime: 800,
 		feedbackTime: 750,
 		finishDelayTime: 1000,
-		speeds: [ 400, 125, 50 ], // slow, optimal, fast
+		speeds: [ 400, 125, 40 ], // slow, optimal, fast
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
@@ -117,7 +117,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 			var model = this.model;
 			var timing = model.get("timing");
 			var mode = this.model.get("mode");
-			var now = new Date().getTime();
+			var now = performance.now();
 
 			switch(mode) {
 				case this.modes.revealChoices:
@@ -127,6 +127,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 					timing.recognizeUserStart = now - timing.start;
 					break;
 				case this.modes.userFeedback:
+					console.log(timing.userRevealTime);
 					timing.userFeedback = now - timing.start;
 					break;
 				case this.modes.recognizeDistractor:
@@ -137,7 +138,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 					timing.total = now - timing.start;
 					break;
 			}
-			console.log(timing);
+			// console.log(timing);
 		},
 
 		// this.input is a participant collection.
@@ -146,7 +147,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 			this.participants = this.input.participants; // need collection for ease of use with framework
 			this.setParticipant(this.participants.at(0));
 
-			console.log("user", this.model.get("userChoice"), "distractor", this.model.get("distractorChoice"));
+			// console.log("user", this.model.get("userChoice"), "distractor", this.model.get("distractorChoice"));
 		},
 
 		setParticipant: function (participant) {
@@ -183,8 +184,8 @@ function (App, Common, StateApp, RecognitionSegments) {
 				this.distractorRevealTimer = this.userRevealTimer = setTimeout(function () {
 					this.userRevealTimer = null;
 					var timing = model.get("timing");
-					timing.userRevealTime = new Date().getTime() - timing.start;
-					timing.distractorRevealTime = new Date().getTime() - timing.start;
+					timing.userRevealTime = performance.now() - timing.start;
+					timing.distractorRevealTime = performance.now() - timing.start;
 
 					this.changeMode(this.modes.recognizeUser);
 					this.participant.set("choice", null);
@@ -195,7 +196,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 				this.distractorRevealTimer = setTimeout(function () {
 					this.distractorRevealTimer = null;
 					var timing = model.get("timing");
-					timing.distractorRevealTime = new Date().getTime() - timing.start;
+					timing.distractorRevealTime = performance.now() - timing.start;
 
 					this.changeMode(this.modes.revealChoices, { user: true, distractor: false });
 
@@ -204,7 +205,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 				this.userRevealTimer = setTimeout(function () {
 					this.userRevealTimer = null;
 					var timing = model.get("timing");
-					timing.userRevealTime = new Date().getTime() - timing.start;
+					timing.userRevealTime = performance.now() - timing.start;
 
 					this.changeMode(this.modes.recognizeUser);
 					this.participant.set("choice", null);
@@ -215,7 +216,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 				this.userRevealTimer = setTimeout(function () {
 					this.userRevealTimer = null;
 					var timing = model.get("timing");
-					timing.userRevealTime = new Date().getTime() - timing.start;
+					timing.userRevealTime = performance.now() - timing.start;
 
 					this.participant.set("choice", null);
 					this.changeMode(this.modes.revealChoices, { user: false, distractor: true });
@@ -224,7 +225,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 				this.distractorRevealTimer = setTimeout(function () {
 					this.distractorRevealTimer = null;
 					var timing = model.get("timing");
-					timing.distractorRevealTime = new Date().getTime() - timing.start;
+					timing.distractorRevealTime = performance.now() - timing.start;
 
 
 					this.changeMode(this.modes.recognizeUser);
@@ -243,7 +244,6 @@ function (App, Common, StateApp, RecognitionSegments) {
 			});
 
 			setTimeout(function () {
-				console.log("check mode", this.mode);
 				if (this.model.get("mode") === this.modes.userFeedback) { // ensure multiple button presses haven't jumped us ahead
 					this.changeMode(this.modes.recognizeDistractor);
 					this.participant.set({"feedback": null});
@@ -253,7 +253,8 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 		handleInput: function (choice) {
 			var mode = this.model.get("mode");
-			console.log("mode is", mode);
+			// console.log("mode is", mode);
+			this.participant.set("choice", null);
 
 			if (mode === this.modes.initialDelay || mode === this.modes.distractorDelay) {
 				// ignore user input
@@ -267,7 +268,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 				// ensure we have timings for these.
 				var timing = this.model.get("timing");
-				var now = new Date().getTime();
+				var now = performance.now();
 				timing.userRevealTime = timing.userRevealTime || now - timing.start;
 				timing.distractorRevealTime = timing.distractorRevealTime || now - timing.start;
 				timing.recognizeUserStart = timing.recognizeUserStart || now - timing.start;
@@ -338,10 +339,9 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 2,
+		numRepeats: 20,
 
 		stateOutput: function (output) {
-			console.log("@@ STATE OUTPUTS");
 			var currentIndex = this.currentState.options.stateIndex;
 			var trialOutput = _.omit(output, ['participants', 'clone']);
 			trialOutput.trial = currentIndex + 1;
@@ -370,8 +370,7 @@ function (App, Common, StateApp, RecognitionSegments) {
     },
 
 		logResults: function () {
-			console.log("@@ log results in CONCLUSION", this.input);
-      var logData = {};
+			var logData = {};
       var block = this.options.block;
       logData[block] = {
         results: this.input.stateOutputs,

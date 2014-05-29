@@ -18,7 +18,7 @@ function (App, StateApp, CommonStateApps, RecognitionSegments) {
 							RecognitionSegments.States.Conclusion ],
 		prepend: { attendance: false },
 		stateOptions: [
-			{ name: "slow", userSpeed: 0 }, { block: "slow" },
+			{ name: "slow", userSpeed: 2 }, { block: "slow" },
 			{ name: "medium", userSpeed: 1 }, { block: "medium" },
 			{ name: "fast", userSpeed: 2 }, { block: "fast" } ]
 	});

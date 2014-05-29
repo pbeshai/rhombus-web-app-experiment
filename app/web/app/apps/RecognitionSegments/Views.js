@@ -103,7 +103,6 @@ function (App, Common, RecognitionSegments) {
 			this.$el.css('opacity', 0);
 
 			if (!this.participants || this.participants.length === 0) return;
-
 			var userLocation = this.options.userRow * this.numRows + this.options.userCol;
 			var distractorLocation = this.options.distractorRow * this.numRows + this.options.distractorCol;
 			for (var i = 0; i < this.numRows * this.numCols; i++) {
@@ -131,9 +130,18 @@ function (App, Common, RecognitionSegments) {
 		update: function (data) {
 			if (data.mode === "revealChoices") {
 				if (data.modeMeta.user) {
+					if (this.userStart == null) {
+						this.userStart = performance.now();
+					}
 					this.participants.at(0).set("choice", this.options.userChoice);
 				} else {
+					this.userEnd = performance.now();
 					this.participants.at(0).set("choice", null);
+					if (this.userStart) {
+						console.log("user visible for ", this.userEnd - this.userStart);
+						this.userStart = null;
+					}
+
 				}
 				if (data.modeMeta.distractor) {
 					this.distractor.set("choice", this.options.distractorChoice);
@@ -147,12 +155,16 @@ function (App, Common, RecognitionSegments) {
 					this.distractor.set("choice", null);
 				}
 				if (this.participants.at(0)) {
+					this.userEnd = performance.now();
+					if (this.userStart) {
+						console.log("user visible for ", this.userEnd - this.userStart);
+						this.userStart = null;
+					}
+
 					this.participants.at(0).set("choice", null);
 				}
 
-				if (data.mode === "userFeedback") {
-					this.showFeedback(data.modeMeta);
-				} else if (data.mode === "finished") {
+				if (data.mode === "finished") {
 					if (this.options.showDistractorFeedback) {
 						this.distractor.set("feedback", data.modeMeta.distractorCorrect);
 					}
@@ -164,10 +176,6 @@ function (App, Common, RecognitionSegments) {
 					}
 				}
 			}
-		},
-
-		showFeedback: function (correct) {
-			console.log("user was", correct ? "correct" : "incorrect");
 		},
 
 		serialize: function () {
