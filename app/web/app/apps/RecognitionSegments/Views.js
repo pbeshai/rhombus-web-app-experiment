@@ -79,11 +79,14 @@ function (App, Common, RecognitionSegments) {
 				lowerLeft: true,
 				lowerRight: true
 			};
+
+			return this; // for chaining
 		},
 
 		segmentsFromValue: function (value) {
 			this.resetSegments();
 			_.extend(this.segments, this.valueToSegments[value]);
+			return this; // for chaining
 		},
 
 		initialize: function (options) {
@@ -108,13 +111,17 @@ function (App, Common, RecognitionSegments) {
 			for (var i = 0; i < this.numRows * this.numCols; i++) {
 				if (i !== userLocation) {
 					var userModel = new Backbone.Model({ alias: this.options.aliases[i]});
+					var view = new RecognitionSegmentsViews.Play.Participant({ model: userModel });
+
 					if (i === distractorLocation) {
 						this.distractor = userModel;
+						this.distractorView = view;
 					}
 
-					this.insertView(".grid-cell-" + i, new RecognitionSegmentsViews.Play.Participant({ model: userModel }));
+					this.insertView(".grid-cell-" + i, view);
 				} else {
-					this.insertView(".grid-cell-" + i, new RecognitionSegmentsViews.Play.Participant({ model: this.participants.at(0) }));
+					this.userView = new RecognitionSegmentsViews.Play.Participant({ model: this.participants.at(0) });
+					this.insertView(".grid-cell-" + i, this.userView);
 				}
 			}
 		},
@@ -133,13 +140,17 @@ function (App, Common, RecognitionSegments) {
 
 			if (data.mode === "revealChoices") {
 
+				// user.set("choice", this.options.userChoice);
+				// distractor.set("choice", this.options.distractorChoice);
+				var userSegment = this.userView.views[".message-text"];
+				userSegment.segmentsFromValue(this.options.userChoice).render();
+				var distractorSegment = this.distractorView.views[".message-text"];
+				distractorSegment.segmentsFromValue(this.options.distractorChoice).render();
+
 				this.userStart = performance.now();
 				this.distractorStart = performance.now();
 				var userStart = performance.now();
 				var distractorStart = performance.now();
-
-				user.set("choice", this.options.userChoice);
-				distractor.set("choice", this.options.distractorChoice);
 
 				var userTime = data.modeMeta.userTime, distractorTime = data.modeMeta.distractorTime;
 
@@ -147,22 +158,20 @@ function (App, Common, RecognitionSegments) {
 				if (userTime === distractorTime) {
 					console.log("same times");
 					setTimeout(function () {
+						userSegment.resetSegments().render();
+						distractorSegment.resetSegments().render();
 						console.log("user visible for", performance.now() - userStart);
 						console.log("distractor visible for", performance.now() - distractorStart);
-						user.set("choice", null);
-						distractor.set("choice", null);
-
 					}, userTime);
 				} else {
 					setTimeout(function () {
+						userSegment.resetSegments().render();
 						console.log("user visible for", performance.now() - userStart);
-						user.set("choice", null);
 					}, userTime);
 
 					setTimeout(function () {
+						distractorSegment.resetSegments().render();
 						console.log("distractor visible for", performance.now() - distractorStart);
-						distractor.set("choice", null);
-
 					}, distractorTime);
 				}
 			} else {
