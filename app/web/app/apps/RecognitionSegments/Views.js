@@ -162,16 +162,27 @@ function (App, Common, RecognitionSegments) {
 						distractorSegment.resetSegments().render();
 						console.log("user visible for", performance.now() - userStart);
 						console.log("distractor visible for", performance.now() - distractorStart);
+						App.viewer.appController.updateController({
+							userRevealTime: performance.now() - userStart,
+							distractorRevealTime: performance.now() - userStart
+						});
+
 					}, userTime);
 				} else {
 					setTimeout(function () {
 						userSegment.resetSegments().render();
 						console.log("user visible for", performance.now() - userStart);
+						App.viewer.appController.updateController({
+							userRevealTime: performance.now() - userStart
+						});
 					}, userTime);
 
 					setTimeout(function () {
 						distractorSegment.resetSegments().render();
 						console.log("distractor visible for", performance.now() - distractorStart);
+						App.viewer.appController.updateController({
+							distractorRevealTime: performance.now() - userStart
+						});
 					}, distractorTime);
 				}
 			} else {

@@ -127,7 +127,6 @@ function (App, Common, StateApp, RecognitionSegments) {
 					timing.recognizeUserStart = now - timing.start;
 					break;
 				case this.modes.userFeedback:
-					console.log(timing.userRevealTime);
 					timing.userFeedback = now - timing.start;
 					break;
 				case this.modes.recognizeDistractor:
@@ -139,6 +138,17 @@ function (App, Common, StateApp, RecognitionSegments) {
 					break;
 			}
 			// console.log(timing);
+		},
+
+		// save viewer reveal times
+		update: function (data) {
+			var timing = this.model.get("timing");
+			if (data.userRevealTime) {
+				timing.userRevealTime = data.userRevealTime;
+			}
+			if (data.distractorRevealTime) {
+				timing.distractorRevealTime = data.distractorRevealTime;
+			}
 		},
 
 		// this.input is a participant collection.
@@ -179,7 +189,6 @@ function (App, Common, StateApp, RecognitionSegments) {
 			this.changeMode(this.modes.revealChoices, { userTime: this.speeds[userSpeed], distractorTime: this.speeds[distractorSpeed] });
 
 			var revealTime = Math.max(this.speeds[userSpeed], this.speeds[distractorSpeed]);
-			console.log("reveal time", revealTime);
 			this.revealTimer = setTimeout(function () {
 				this.revealTimer = null;
 				this.changeMode(this.modes.recognizeUser);
@@ -214,16 +223,12 @@ function (App, Common, StateApp, RecognitionSegments) {
 				this.participant.set("choice", null);
 
 			} else if (mode === this.modes.revealChoices || mode === this.modes.recognizeUser) {
-				clearTimeout(this.userRevealTimer);
-				clearTimeout(this.distractorRevealTimer);
-				this.userRevealTimer = null;
-				this.distractorRevealTimer = null;
+				clearTimeout(this.revealTimer);
+				this.revealTimer = null;
 
 				// ensure we have timings for these.
 				var timing = this.model.get("timing");
 				var now = performance.now();
-				timing.userRevealTime = timing.userRevealTime || now - timing.start;
-				timing.distractorRevealTime = timing.distractorRevealTime || now - timing.start;
 				timing.recognizeUserStart = timing.recognizeUserStart || now - timing.start;
 
 				this.doUserFeedback(choice);
