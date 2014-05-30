@@ -35,7 +35,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 		initialDelayTime: 800,
 		feedbackTime: 750,
 		finishDelayTime: 1000,
-		speeds: [ 400, 125, 40 ], // slow, optimal, fast
+		speeds: [ 400, 125, 1 ], // slow, optimal, fast
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
@@ -174,63 +174,16 @@ function (App, Common, StateApp, RecognitionSegments) {
 		},
 
 		doRevealChoices: function () {
-			this.changeMode(this.modes.revealChoices, { user: true, distractor: true });
-			// this.participant.set("choice", this.model.get("userChoice"));
 			var model = this.model;
 			var userSpeed = this.model.get("userSpeed"), distractorSpeed = this.model.get("distractorSpeed");
+			this.changeMode(this.modes.revealChoices, { userTime: this.speeds[userSpeed], distractorTime: this.speeds[distractorSpeed] });
 
-			if (userSpeed === distractorSpeed) {
-				// user and distractor stay up same amount of time
-				this.distractorRevealTimer = this.userRevealTimer = setTimeout(function () {
-					this.userRevealTimer = null;
-					var timing = model.get("timing");
-					timing.userRevealTime = performance.now() - timing.start;
-					timing.distractorRevealTime = performance.now() - timing.start;
-
-					this.changeMode(this.modes.recognizeUser);
-					this.participant.set("choice", null);
-				}.bind(this), this.speeds[userSpeed]);
-
-			} else if (userSpeed < distractorSpeed) {
-				// user stays up longer
-				this.distractorRevealTimer = setTimeout(function () {
-					this.distractorRevealTimer = null;
-					var timing = model.get("timing");
-					timing.distractorRevealTime = performance.now() - timing.start;
-
-					this.changeMode(this.modes.revealChoices, { user: true, distractor: false });
-
-				}.bind(this), this.speeds[distractorSpeed]);
-
-				this.userRevealTimer = setTimeout(function () {
-					this.userRevealTimer = null;
-					var timing = model.get("timing");
-					timing.userRevealTime = performance.now() - timing.start;
-
-					this.changeMode(this.modes.recognizeUser);
-					this.participant.set("choice", null);
-				}.bind(this), this.speeds[userSpeed]);
-
-			} else {
-				// distractor stays up longer
-				this.userRevealTimer = setTimeout(function () {
-					this.userRevealTimer = null;
-					var timing = model.get("timing");
-					timing.userRevealTime = performance.now() - timing.start;
-
-					this.participant.set("choice", null);
-					this.changeMode(this.modes.revealChoices, { user: false, distractor: true });
-				}.bind(this), this.speeds[userSpeed]);
-
-				this.distractorRevealTimer = setTimeout(function () {
-					this.distractorRevealTimer = null;
-					var timing = model.get("timing");
-					timing.distractorRevealTime = performance.now() - timing.start;
-
-
-					this.changeMode(this.modes.recognizeUser);
-				}.bind(this), this.speeds[distractorSpeed]);
-			}
+			var revealTime = Math.max(this.speeds[userSpeed], this.speeds[distractorSpeed]);
+			console.log("reveal time", revealTime);
+			this.revealTimer = setTimeout(function () {
+				this.revealTimer = null;
+				this.changeMode(this.modes.recognizeUser);
+			}.bind(this), revealTime);
 		},
 
 		doUserFeedback: function (choice) {

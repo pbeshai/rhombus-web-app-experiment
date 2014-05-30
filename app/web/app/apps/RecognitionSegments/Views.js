@@ -128,45 +128,52 @@ function (App, Common, RecognitionSegments) {
 		},
 
 		update: function (data) {
+
+			var user = this.participants.at(0), distractor = this.distractor;
+
 			if (data.mode === "revealChoices") {
-				if (data.modeMeta.user) {
-					if (this.userStart == null) {
-						this.userStart = performance.now();
-					}
-					this.participants.at(0).set("choice", this.options.userChoice);
+
+				this.userStart = performance.now();
+				this.distractorStart = performance.now();
+				var userStart = performance.now();
+				var distractorStart = performance.now();
+
+				user.set("choice", this.options.userChoice);
+				distractor.set("choice", this.options.distractorChoice);
+
+				var userTime = data.modeMeta.userTime, distractorTime = data.modeMeta.distractorTime;
+
+				console.log("user time = ", userTime, "distractor time = ", distractorTime);
+				if (userTime === distractorTime) {
+					console.log("same times");
+					setTimeout(function () {
+						console.log("user visible for", performance.now() - userStart);
+						console.log("distractor visible for", performance.now() - distractorStart);
+						user.set("choice", null);
+						distractor.set("choice", null);
+
+					}, userTime);
 				} else {
-					this.userEnd = performance.now();
-					this.participants.at(0).set("choice", null);
-					if (this.userStart) {
-						console.log("user visible for ", this.userEnd - this.userStart);
-						this.userStart = null;
-					}
+					setTimeout(function () {
+						console.log("user visible for", performance.now() - userStart);
+						user.set("choice", null);
+					}, userTime);
 
+					setTimeout(function () {
+						console.log("distractor visible for", performance.now() - distractorStart);
+						distractor.set("choice", null);
+
+					}, distractorTime);
 				}
-				if (data.modeMeta.distractor) {
-					this.distractor.set("choice", this.options.distractorChoice);
-				} else {
-					this.distractor.set("choice", null);
-				}
-
-
 			} else {
-				if (this.distractor) {
-					this.distractor.set("choice", null);
-				}
-				if (this.participants.at(0)) {
-					this.userEnd = performance.now();
-					if (this.userStart) {
-						console.log("user visible for ", this.userEnd - this.userStart);
-						this.userStart = null;
-					}
-
-					this.participants.at(0).set("choice", null);
+				if (user) {
+					distractor.set("choice", null);
+					user.set("choice", null);
 				}
 
 				if (data.mode === "finished") {
 					if (this.options.showDistractorFeedback) {
-						this.distractor.set("feedback", data.modeMeta.distractorCorrect);
+						distractor.set("feedback", data.modeMeta.distractorCorrect);
 					}
 
 					if (this.options.delayFinishFade) {
