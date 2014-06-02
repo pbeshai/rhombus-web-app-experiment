@@ -299,7 +299,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 2,
+		numRepeats: 16,
 
 		stateOutput: function (output) {
 			var currentIndex = this.currentState.options.stateIndex;
