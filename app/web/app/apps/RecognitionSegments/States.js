@@ -35,7 +35,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 		initialDelayTime: 800,
 		feedbackTime: 750,
 		finishDelayTime: 1000,
-		speeds: [ 400, 125, 40 ], // slow, optimal, fast
+		speeds: [ 400, 80, 10 ], // slow, optimal, fast
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
@@ -277,6 +277,8 @@ function (App, Common, StateApp, RecognitionSegments) {
 				guessedDistractorChoice: this.model.get("guessedDistractorChoice"),
 				distractorChoice: this.model.get("distractorChoice"),
 				timing: this.model.get("timing"),
+				distractorRow: this.model.get("distractorRow"),
+				distractorCol: this.model.get("distractorCol")
 			});
 		},
 
@@ -297,7 +299,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 20,
+		numRepeats: 2,
 
 		stateOutput: function (output) {
 			var currentIndex = this.currentState.options.stateIndex;

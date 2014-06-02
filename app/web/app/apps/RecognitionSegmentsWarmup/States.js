@@ -26,8 +26,8 @@ function (App, Common, StateApp, RecognitionSegmentsWarmup, RecognitionSegments)
 	RecognitionSegmentsWarmupStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsWarmupStates.Play,
-		numRepeats: 4,
-		streakRequired: 2,
+		numRepeats: 10,
+		streakRequired: 4,
 
 		initialize: function () {
 			StateApp.RepeatState.prototype.initialize.apply(this, arguments);

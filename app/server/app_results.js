@@ -31,11 +31,12 @@ function recognitionResults(req, res) {
 	var warmup = flags && flags.warmup;
 
 	var appId = warmup ? "RecognitionSegmentsWarmup" : "RecognitionSegments";
-
+	var stream;
+	var trialOutputs = req.body.trialOutputs;
 
 	if (flags && flags.trial !== undefined && flags.trial !== false) {
 
-		var stream = fs.createWriteStream("log/" +appId + "/trials/trial_results." + filenameFormat(now) + ".csv");
+		stream = fs.createWriteStream("log/" +appId + "/trials/trial_results." + filenameFormat(now) + ".csv");
 		stream.once('open', function(fd) {
 			function output (str) {
 				logger.info(str);
@@ -45,40 +46,19 @@ function recognitionResults(req, res) {
 			output(now.toString());
 			output("");
 
-			var trialOutputs = req.body.trialOutputs;
-
-			var header = "Block,Trial,UserCorrect,DistractorCorrect,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
+			var header = "Block,Trial,UserCorrect,DistractorCorrect,DistractorRow,DistractorCol,DistractorOuter,DistractorCorner,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
 			output(header);
 
 			var prevTrials = trialOutputs.previous || [];
 
 			_.each(prevTrials.concat(trialOutputs.current), function (results) {
-				var timing = results.timing || {};
-				var data = [ trialOutputs.block,
-					results.trial,
-					results.userChoice === results.guessedUserChoice ? 1 : 0,
-					results.distractorChoice === results.guessedDistractorChoice ? 1 : 0,
-					results.userChoice,
-					results.distractorChoice,
-					results.guessedUserChoice,
-					results.guessedDistractorChoice,
-					timing.total,
-					timing.start,
-					timing.userRevealTime,
-					timing.distractorRevealTime,
-					timing.recognizeUserStart,
-					timing.userFeedback,
-					timing.recognizeDistractorStart,
-					timing.recognizeDistractorEnd,
-				];
-
-				output(data.join(","));
+				output(serializeResults(trialOutputs.block, results));
 			});
 
 			res.send(200);
 		});
 	} else {
-		var stream = fs.createWriteStream("log/" + appId + "/results." + filenameFormat(now) + ".csv");
+		stream = fs.createWriteStream("log/" + appId + "/results." + filenameFormat(now) + ".csv");
 		stream.once('open', function(fd) {
 			function output (str) {
 				logger.info(str);
@@ -88,7 +68,6 @@ function recognitionResults(req, res) {
 			output(now.toString());
 			output("");
 
-			var trialOutputs = req.body.trialOutputs;
 			// output slow, medium, fast
 			if (warmup) {
 				outputBlock("warmup");
@@ -99,7 +78,7 @@ function recognitionResults(req, res) {
 			}
 
 			function outputBlock(block) {
-				var header = "Block,Trial,UserCorrect,DistractorCorrect,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
+				var header = "Block,Trial,UserCorrect,DistractorCorrect,DistractorRow,DistractorCol,DistractorOuter,DistractorCorner,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
 				output(header);
 				if (!req.body[block]) {
 					output("Block " + block + " not found.");
@@ -107,26 +86,7 @@ function recognitionResults(req, res) {
 				}
 				var resultsArray = req.body[block].results;
 				_.each(resultsArray, function (results) {
-					var timing = results.timing || {};
-					var data = [ block,
-						results.trial,
-						results.userChoice === results.guessedUserChoice ? 1 : 0,
-						results.distractorChoice === results.guessedDistractorChoice ? 1 : 0,
-						results.userChoice,
-						results.distractorChoice,
-						results.guessedUserChoice,
-						results.guessedDistractorChoice,
-						timing.total,
-						timing.start,
-						timing.userRevealTime,
-						timing.distractorRevealTime,
-						timing.recognizeUserStart,
-						timing.userFeedback,
-						timing.recognizeDistractorStart,
-						timing.recognizeDistractorEnd,
-					];
-
-					output(data.join(","));
+					output(serializeResults(block, results));
 				});
 
 				var breakDuration = req.body["break-" + block];
@@ -142,6 +102,36 @@ function recognitionResults(req, res) {
 			res.send(200);
 		});
 	}
+
+	function serializeResults(block, results) {
+		var row = parseInt(results.distractorRow, 10), col = parseInt(results.distractorCol, 10);
+		var distractorOuter = (row === 0 || row === 4 || col === 0 || col === 4) ? 1 : 0;
+		var distractorCorner = ((row === 0 && (col === 0 || col === 4)) || (row === 4 && (col === 0 || col === 4))) ? 1 : 0;
+		var timing = results.timing || {};
+		var data = [ block,
+			results.trial,
+			results.userChoice === results.guessedUserChoice ? 1 : 0,
+			results.distractorChoice === results.guessedDistractorChoice ? 1 : 0,
+			results.distractorRow,
+			results.distractorCol,
+			distractorOuter,
+			distractorCorner,
+			results.userChoice,
+			results.distractorChoice,
+			results.guessedUserChoice,
+			results.guessedDistractorChoice,
+			timing.total,
+			timing.start,
+			timing.userRevealTime,
+			timing.distractorRevealTime,
+			timing.recognizeUserStart,
+			timing.userFeedback,
+			timing.recognizeDistractorStart,
+			timing.recognizeDistractorEnd,
+		];
+
+		return data.join(",");
+	}
 }
 
 function warmupResults(req, res) {
@@ -152,7 +142,6 @@ function warmupResults(req, res) {
 	} else {
 		console.log("Not trial");
 	}
-	console.log(req.body);
 
 	res.send(200);
 }
