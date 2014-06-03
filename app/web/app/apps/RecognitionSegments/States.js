@@ -278,7 +278,9 @@ function (App, Common, StateApp, RecognitionSegments) {
 				distractorChoice: this.model.get("distractorChoice"),
 				timing: this.model.get("timing"),
 				distractorRow: this.model.get("distractorRow"),
-				distractorCol: this.model.get("distractorCol")
+				distractorCol: this.model.get("distractorCol"),
+				distractorSpeed: this.model.get("distractorSpeed"),
+				userSpeed: this.model.get("userSpeed")
 			});
 		},
 
@@ -299,7 +301,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 16,
+		numRepeats: 2,
 
 		stateOutput: function (output) {
 			var currentIndex = this.currentState.options.stateIndex;
