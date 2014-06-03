@@ -35,7 +35,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 		initialDelayTime: 800,
 		feedbackTime: 750,
 		finishDelayTime: 1000,
-		speeds: [ 400, 80, 10 ], // slow, optimal, fast
+		speeds: [ 400, 80, 16 ], // slow, optimal, fast
 
 		initialize: function () {
 			StateApp.ViewState.prototype.initialize.apply(this, arguments);
