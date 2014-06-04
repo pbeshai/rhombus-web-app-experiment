@@ -8,6 +8,8 @@ define([
 ],
 function (App, Common, StateApp, RecognitionSegments) {
 
+	var NUM_REPEATS = 96;
+
 	var RecognitionSegmentsStates = {};
 
 	// To be used in StateApps
@@ -301,7 +303,7 @@ function (App, Common, StateApp, RecognitionSegments) {
 	RecognitionSegmentsStates.RepeatedPlay = StateApp.RepeatState.extend({
 		name: "repeat",
 		State: RecognitionSegmentsStates.Play,
-		numRepeats: 48,
+		numRepeats: NUM_REPEATS,
 
 		stateOutput: function (output) {
 			var currentIndex = this.currentState.options.stateIndex;

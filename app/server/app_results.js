@@ -102,6 +102,8 @@ function recognitionResults(req, res) {
 					dSlowDisCorrect: blockSum("dSlowDisCorrect"),
 					dMedDisCorrect: blockSum("dMedDisCorrect"),
 					dFastDisCorrect: blockSum("dFastDisCorrect"),
+					disOuterCorrect: blockSum("disOuterCorrect"),
+					disInnerCorrect: blockSum("disInnerCorrect"),
 					aCorrect: blockSum("aCorrect"),
 					bCorrect: blockSum("bCorrect"),
 					cCorrect: blockSum("cCorrect"),
@@ -168,6 +170,8 @@ function recognitionResults(req, res) {
 					dSlowDisCorrect: 0,
 					dMedDisCorrect: 0,
 					dFastDisCorrect: 0,
+					disOuterCorrect: 0,
+					disInnerCorrect: 0,
 					aCorrect: 0,
 					bCorrect: 0,
 					cCorrect: 0,
@@ -191,6 +195,8 @@ function recognitionResults(req, res) {
 					var disSpeed = parseInt(results.distractorSpeed, 10);
 					var timing = results.timing || {};
 					var userChoice = results.userChoice, disChoice = results.distractorChoice;
+					var row = parseInt(results.distractorRow, 10), col = parseInt(results.distractorCol, 10);
+
 					// save the stats for correctness of user value
 					if (userCorrect) {
 						stats.userCorrect += 1;
@@ -236,6 +242,12 @@ function recognitionResults(req, res) {
 							stats.dDisCorrect += 1;
 						} else if (disChoice === "E") {
 							stats.eDisCorrect += 1;
+						}
+
+						if (row === 0 || row === 4 || col === 0 || col === 4) {
+							stats.disOuterCorrect += 1;
+						} else {
+							stats.disInnerCorrect += 1;
 						}
 					}
 
