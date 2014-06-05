@@ -8,7 +8,7 @@ define([
 ],
 function (App, Common, StateApp, RecognitionSegments) {
 
-	var NUM_REPEATS = 96;
+	var NUM_REPEATS = 144;
 
 	var RecognitionSegmentsStates = {};
 
