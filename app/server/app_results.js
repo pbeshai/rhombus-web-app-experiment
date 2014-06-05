@@ -49,12 +49,14 @@ function recognitionResults(req, res) {
 
 			var header = "Block,Trial,UserCorrect,DistractorCorrect,UserSpeed,DistractorSpeed,DistractorRow,DistractorCol,DistractorOuter,DistractorCorner,UserChoice,DistractorChoice,UserGuess,DistractorGuess,TotalTime,Start,UserRevealTime,DistractorRevealTime,RecognizeUserStart,UserFeedbackShown,RecognizeDistractorStart,RecognizeDistractorEnd"
 			output(header);
+			if (trialOutputs) {
+				var prevTrials = trialOutputs.previous || [];
 
-			var prevTrials = trialOutputs.previous || [];
-
-			_.each(prevTrials.concat(trialOutputs.current), function (results) {
-				output(serializeResults(trialOutputs.block, results));
-			});
+				_.each(prevTrials.concat(trialOutputs.current), function (results) {
+					output(serializeResults(trialOutputs.block, results));
+				});
+			}
+			stream.end();
 
 			res.send(200);
 		});
@@ -271,7 +273,7 @@ function recognitionResults(req, res) {
 
 				return stats;
 			}
-
+			stream.end();
 			res.send(200);
 		});
 	}

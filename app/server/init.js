@@ -22,6 +22,5 @@ function webInit(site, serverOptions) {
 // function to do extra initialization after listening with websocket
 function webSocketInit(io, serverOptions) {
 	logger.info("app webSocketInit");
-	io.set('log level', 1); // reduces logging.
 	fwInit.webSocketInit(io, serverOptions, fwConfig);
 }
