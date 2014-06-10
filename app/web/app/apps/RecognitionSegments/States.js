@@ -288,14 +288,19 @@ function (App, Common, StateApp, RecognitionSegments) {
 
 		addNewParticipants: function (render) {
 			var participants = this.input.participants;
+
 			if (participants.newParticipants.length > 0) {
-				participants.remove(participants.models);
-				participants.newParticipants.length = 1; // only keep one
-				participants.addNewParticipants();
-				this.setParticipant(participants.at(0));
-			}
-			if (render) {
-				this.rerender();
+				if (participants.length > 0) {
+					// ignore latecomers
+					participants.clearNewParticipants();
+				} else { // add in single new participant.
+					participants.addNewParticipants();
+					this.setParticipant(participants.at(0));
+
+					if (render) {
+						this.rerender();
+					}
+				}
 			}
 		},
 	});
