@@ -222,9 +222,10 @@ function (App, Common, RecognitionSegments) {
 	RecognitionSegmentsViews.BlockComplete = App.registerView("RecognitionSegments::block-complete", Backbone.View.extend({
 		template: "app/apps/RecognitionSegments/templates/block_complete",
 
-		beforeRender: function () {
-			this.setView(".big-timer", new Common.Views.Countdown({ endTime: this.options.endTime }));
-		}
+		// this was unnecessary and made participants feel rushed.
+		// beforeRender: function () {
+		// 	this.setView(".big-timer", new Common.Views.Countdown({ endTime: this.options.endTime }));
+		// }
 	}));
 
 	return RecognitionSegmentsViews;
