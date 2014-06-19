@@ -11,6 +11,9 @@ function initialize(site) {
 	site.post("/api/apps/warmup/log", warmupResults);
 	site.post("/api/apps/RecognitionSegments/log", recognitionResults);
 	site.post("/api/apps/RecognitionSegmentsWarmup/log", recognitionResults);
+
+	site.post("/api/apps/RecognitionOnsetSegments/log", recognitionResultsOnset);
+	site.post("/api/apps/RecognitionOnsetSegmentsWarmup/log", recognitionResultsOnset);
 }
 
 
@@ -22,15 +25,24 @@ function filenameFormat(date) {
 	return date.getFullYear()+z(date.getMonth()+1)+z(date.getDate())+"_"+z(date.getHours())+z(date.getMinutes())+z(date.getSeconds());
 }
 
-function recognitionResults(req, res) {
+function recognitionResultsOnset(req, res) {
+	return recognitionResults(req, res, true);
+}
+
+function recognitionResults(req, res, onset) {
 	var now = new Date();
 	var config = req.body.config;
 	var version = req.body.version;
 
 	var flags = req.body.flags;
 	var warmup = flags && flags.warmup;
+	var appId;
 
-	var appId = warmup ? "RecognitionSegmentsWarmup" : "RecognitionSegments";
+	if (onset !== true) {
+		appId = warmup ? "RecognitionSegmentsWarmup" : "RecognitionSegments";
+	} else {
+		appId = warmup ? "RecognitionOnsetSegmentsWarmup" : "RecognitionOnsetSegments";
+	}
 	var stream;
 	var trialOutputs = req.body.trialOutputs;
 

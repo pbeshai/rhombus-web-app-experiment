@@ -42,23 +42,48 @@ function (App, Common, RecognitionSegments) {
 		template: "app/apps/RecognitionSegments/templates/segment",
 		valueToSegments: {
 			"A": {
-				bottom: false
+				top: true,
+				middle: true,
+				bottom: false,
+				upperLeft: true,
+				upperRight: true,
+				lowerLeft: true,
+				lowerRight: true
 			},
 			"B": {
 				top: false,
-				upperRight: false
+				middle: true,
+				bottom: true,
+				upperLeft: true,
+				upperRight: false,
+				lowerLeft: true,
+				lowerRight: true
 			},
 			"C": {
-				upperRight: false,
+				top: true,
 				middle: false,
+				bottom: true,
+				upperLeft: true,
+				upperRight: false,
+				lowerLeft: true,
 				lowerRight: false
 			},
 			"D": {
 				top: false,
-				upperLeft: false
+				middle: true,
+				bottom: true,
+				upperLeft: false,
+				upperRight: true,
+				lowerLeft: true,
+				lowerRight: true
 			},
 			"E": {
+				top: true,
+				middle: true,
+				bottom: true,
+				upperLeft: true,
 				upperRight: false,
+				lowerLeft: true,
 				lowerRight: false
 			}
 		},
@@ -69,15 +94,16 @@ function (App, Common, RecognitionSegments) {
 			};
 		},
 
-		resetSegments: function () {
+		resetSegments: function (showSegments) {
+			showSegments = showSegments || !this.options.resetBlank;
 			this.segments = {
-				top: true,
-				middle: true,
-				bottom: true,
-				upperLeft: true,
-				upperRight: true,
-				lowerLeft: true,
-				lowerRight: true
+				top: showSegments,
+				middle: showSegments,
+				bottom: showSegments,
+				upperLeft: showSegments,
+				upperRight: showSegments,
+				lowerLeft: showSegments,
+				lowerRight: showSegments
 			};
 
 			return this; // for chaining
@@ -90,6 +116,9 @@ function (App, Common, RecognitionSegments) {
 		},
 
 		initialize: function (options) {
+			if (this.options.resetBlank === undefined) {
+				this.options.resetBlank = false;
+			}
 			this.resetSegments();
 			if (this.options.value) {
 				this.segmentsFromValue(this.options.value);
@@ -101,6 +130,7 @@ function (App, Common, RecognitionSegments) {
 		template: "app/apps/RecognitionSegments/templates/grid",
 		numRows: 5,
 		numCols: 5,
+		ParticipantView: RecognitionSegmentsViews.Play.Participant,
 
 		beforeRender: function () {
 			this.$el.css('opacity', 0);
@@ -111,7 +141,7 @@ function (App, Common, RecognitionSegments) {
 			for (var i = 0; i < this.numRows * this.numCols; i++) {
 				if (i !== userLocation) {
 					var userModel = new Backbone.Model({ alias: this.options.aliases[i]});
-					var view = new RecognitionSegmentsViews.Play.Participant({ model: userModel });
+					var view = new this.ParticipantView({ model: userModel });
 
 					if (i === distractorLocation) {
 						this.distractor = userModel;
@@ -120,7 +150,7 @@ function (App, Common, RecognitionSegments) {
 
 					this.insertView(".grid-cell-" + i, view);
 				} else {
-					this.userView = new RecognitionSegmentsViews.Play.Participant({ model: this.participants.at(0) });
+					this.userView = new this.ParticipantView({ model: this.participants.at(0) });
 					this.insertView(".grid-cell-" + i, this.userView);
 				}
 			}
