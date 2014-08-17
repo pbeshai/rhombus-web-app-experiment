@@ -1,32 +1,17 @@
 module.exports = {
-	initialize: initialize
+	init: init,
+	recognitionResults: recognitionResults
 };
 
 var fs = require('fs'),
 	_ = require('lodash'),
-	logger = require("../../log/logger");
+	logger = require("../../../../../../log/logger"),
+	util = require("../../../../../../framework/server/api/util");
 
-function initialize(site) {
-	site.post("/api/apps/warmup/log", warmupResults);
+function init(site, initConfig) {
 	site.post("/api/apps/RecognitionSegments/log", recognitionResults);
-	site.post("/api/apps/RecognitionSegmentsWarmup/log", recognitionResults);
-
-	site.post("/api/apps/RecognitionOnsetSegments/log", recognitionResultsOnset);
-	site.post("/api/apps/RecognitionOnsetSegmentsWarmup/log", recognitionResultsOnset);
 }
 
-
-function z(str) { // add leading zero
-	return ("0"+str).slice(-2);
-}
-
-function filenameFormat(date) {
-	return date.getFullYear()+z(date.getMonth()+1)+z(date.getDate())+"_"+z(date.getHours())+z(date.getMinutes())+z(date.getSeconds());
-}
-
-function recognitionResultsOnset(req, res) {
-	return recognitionResults(req, res, true);
-}
 
 function recognitionResults(req, res, onset) {
 	var now = new Date();
@@ -45,10 +30,16 @@ function recognitionResults(req, res, onset) {
 	var stream;
 	var trialOutputs = req.body.trialOutputs;
 
+	if (!fs.existsSync("log/" + appId)) {
+		fs.mkdirSync("log/" + appId); // ensure the directory exists
+	}
+	if (!fs.existsSync("log/" + appId + "/trials")) {
+		fs.mkdirSync("log/" + appId + "/trials"); // ensure the directory exists
+	}
 
 	if (flags && flags.trial !== undefined && flags.trial !== false) {
 
-		stream = fs.createWriteStream("log/" +appId + "/trials/trial_results." + filenameFormat(now) + ".csv");
+		stream = fs.createWriteStream("log/" +appId + "/trials/trial_results." + util.filenameFormat(now) + ".csv");
 		stream.once('open', function(fd) {
 			function output (str) {
 				logger.info(str);
@@ -72,7 +63,7 @@ function recognitionResults(req, res, onset) {
 			res.send(200);
 		});
 	} else {
-		stream = fs.createWriteStream("log/" + appId + "/results." + filenameFormat(now) + ".csv");
+		stream = fs.createWriteStream("log/" + appId + "/results." + util.filenameFormat(now) + ".csv");
 		stream.once('open', function(fd) {
 			function output (str) {
 				logger.info(str);
@@ -322,16 +313,4 @@ function recognitionResults(req, res, onset) {
 
 		return data.join(",");
 	}
-}
-
-function warmupResults(req, res) {
-	var flags = req.body.flags;
-
-	if (flags && flags.trial !== undefined && flags.trial !== false) {
-		console.log("Trial ", flags.trial);
-	} else {
-		console.log("Not trial");
-	}
-
-	res.send(200);
 }
