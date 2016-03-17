@@ -1,0 +1,15 @@
+<% if (participantReady) { %>
+<div class="participant-grid">
+	<div class="grid-inner">
+	<% for (var r = 0; r < rows; r++) {
+	 %><div class="grid-row grid-row-<%= r %>"><%
+		  for (var c = 0; c < columns; c++) {
+		  	%><div class="grid-cell grid-cell-<%= r*rows+c %> grid-col-<%= c %>"></div><%
+			}
+	%></div><%
+	}
+	%></div>
+</div>
+<% } else { %>
+<h1 class="big-message">Waiting for participant...</h1>
+<% } %>
